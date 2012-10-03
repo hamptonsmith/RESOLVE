@@ -59,8 +59,12 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 
 public class AltItemExp extends Exp {
@@ -262,10 +266,10 @@ public class AltItemExp extends Exp {
     }
 
     public Exp replace(Exp old, Exp replacement) {
-        AltItemExp result = (AltItemExp) copy();
+        AltItemExp result = (AltItemExp) Exp.copy(this);
 
         if (test != null) {
-            result.test = test.replace(old, replacement);
+            result.test = Exp.replace(test, old, replacement);
         }
 
         if (assignment != null) {
@@ -276,7 +280,7 @@ public class AltItemExp extends Exp {
 
             Exp oldAssignment = assignment;
 
-            result.assignment = assignment.replace(old, replacement);
+            result.assignment = Exp.replace(assignment, old, replacement);
 
             if (result.assignment == null) {
                 result.assignment = oldAssignment;
@@ -287,14 +291,14 @@ public class AltItemExp extends Exp {
     }
 
     public Exp copy() {
-        Exp newTest = test;
+        Exp newTest = Exp.copy(test);
         if (newTest != null) {
-            newTest = newTest.copy();
+            newTest = Exp.copy(newTest);
         }
 
         Exp newAssignment = assignment;
         if (newAssignment != null) {
-            newAssignment = newAssignment.copy();
+            newAssignment = Exp.copy(newAssignment);
         }
 
         Exp result = new AltItemExp(null, newTest, newAssignment);
@@ -306,12 +310,12 @@ public class AltItemExp extends Exp {
     public Object clone() {
         Exp newTest = test;
         if (newTest != null) {
-            newTest = (Exp) newTest.clone();
+            newTest = (Exp) Exp.clone(newTest);
         }
 
         Exp newAssignment = assignment;
         if (newAssignment != null) {
-            newAssignment = (Exp) newAssignment.clone();
+            newAssignment = (Exp) Exp.clone(newAssignment);
         }
 
         Exp result = new AltItemExp(null, newTest, newAssignment);

@@ -60,8 +60,11 @@ package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 
 public class SuppositionDeductionExp extends Exp {
@@ -245,12 +248,13 @@ public class SuppositionDeductionExp extends Exp {
     }
 
     public Exp copy() {
-        SuppositionExp newSupposition = (SuppositionExp) (supposition.copy());
-        DeductionExp newDeduction = (DeductionExp) (deduction.copy());
+        SuppositionExp newSupposition =
+                (SuppositionExp) (Exp.copy(supposition));
+        DeductionExp newDeduction = (DeductionExp) (Exp.copy(deduction));
         Iterator<Exp> it = body.iterator();
         List<Exp> newBody = new List<Exp>();
         while (it.hasNext()) {
-            newBody.add(it.next().copy());
+            newBody.add(Exp.copy(it.next()));
         }
         return new SuppositionDeductionExp(null, newSupposition, newBody,
                 newDeduction);

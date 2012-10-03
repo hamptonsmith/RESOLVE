@@ -59,7 +59,9 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.data.Symbol;
 import edu.clemson.cs.r2jt.type.Type;
@@ -84,7 +86,9 @@ public class VariableNameExp extends VariableExp {
     // Constructors
     // ===========================================================
 
-    public VariableNameExp() {};
+    public VariableNameExp() {
+        this(null, null, null);
+    }
 
     public VariableNameExp(Location location, PosSymbol qualifier,
             PosSymbol name) {
@@ -219,7 +223,7 @@ public class VariableNameExp extends VariableExp {
         if (name != null) {
             if (old instanceof VarExp) {
                 if (((VarExp) old).getName().toString().equals(name.toString())) {
-                    return (Exp) replacement.clone();
+                    return (Exp) Exp.clone(replacement);
                 }
             }
         }

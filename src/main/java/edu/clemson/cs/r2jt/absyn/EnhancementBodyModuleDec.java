@@ -60,10 +60,12 @@ package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.data.Symbol;
 
-public class EnhancementBodyModuleDec extends ModuleDec {
+public class EnhancementBodyModuleDec extends AbstractParameterizedModuleDec {
 
     // ===========================================================
     // Variables
@@ -75,9 +77,6 @@ public class EnhancementBodyModuleDec extends ModuleDec {
     /** The performance profile name member. */
     private PosSymbol profileName;
 
-    /** The parameters member. */
-    private List<ModuleParameter> parameters;
-
     /** The enhancementName member. */
     private PosSymbol enhancementName;
 
@@ -86,9 +85,6 @@ public class EnhancementBodyModuleDec extends ModuleDec {
 
     /** The enhancementBodies member. */
     private List<EnhancementBodyItem> enhancementBodies;
-
-    /** The usesItems member. */
-    private List<UsesItem> usesItems;
 
     /** The requires member. */
     private Exp requires;
@@ -115,7 +111,7 @@ public class EnhancementBodyModuleDec extends ModuleDec {
     public EnhancementBodyModuleDec() {};
 
     public EnhancementBodyModuleDec(PosSymbol name, PosSymbol profileName,
-            List<ModuleParameter> parameters, PosSymbol enhancementName,
+            List<ModuleParameterDec> parameters, PosSymbol enhancementName,
             PosSymbol conceptName, List<EnhancementBodyItem> enhancementBodies,
             List<UsesItem> usesItems, Exp requires, List<Exp> conventions,
             List<Exp> corrs, InitItem facilityInit, FinalItem facilityFinal,
@@ -151,11 +147,6 @@ public class EnhancementBodyModuleDec extends ModuleDec {
     /** Returns the value of the profileName variable. */
     public PosSymbol getProfileName() {
         return profileName;
-    }
-
-    /** Returns the value of the parameters variable. */
-    public List<ModuleParameter> getParameters() {
-        return parameters;
     }
 
     /** Returns the value of the enhancementName variable. */
@@ -233,11 +224,6 @@ public class EnhancementBodyModuleDec extends ModuleDec {
     /** Sets the profileName variable to the specified value. */
     public void setProfileName(PosSymbol name) {
         this.profileName = name;
-    }
-
-    /** Sets the parameters variable to the specified value. */
-    public void setParameters(List<ModuleParameter> parameters) {
-        this.parameters = parameters;
     }
 
     /** Sets the enhancementName variable to the specified value. */

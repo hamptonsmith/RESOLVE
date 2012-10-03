@@ -81,8 +81,7 @@ public class Archiver {
     private String workspaceDir;
 
     private String[] stdResolve =
-            { "RESOLVE_BASE.java", "RESOLVE_BASE_EXT.java",
-                    "RESOLVE_INTERFACE.java", "RType.java",
+            { "RESOLVE_BASE.java", "RESOLVE_INTERFACE.java", "RType.java",
                     "RTypeWrapper.java", "TextIO.java" };
 
     private String[] stdImports;
@@ -382,7 +381,7 @@ public class Archiver {
      * (need to check the OS to find out what kind of slash to use first).</p>
      */
     private void createStandardImports() {
-        stdImports = new String[14];
+        stdImports = new String[16];
         stdImports[0] =
                 "Boolean_Template" + File.separator + "Boolean_Template.java";
         stdImports[1] =
@@ -406,12 +405,12 @@ public class Archiver {
         stdImports[9] = "io" + File.separator + "Std_Seq_Input_Realiz.java";
         stdImports[10] = "io" + File.separator + "Seq_Output_Template.java";
         stdImports[11] = "io" + File.separator + "Std_Seq_Output_Realiz.java";
-        //stdImports[12] = "Print" + File.separator + "Print.java";
-        //stdImports[13] = "Print" + File.separator + "Std_Print_Realiz.java";
-        stdImports[12] =
+        stdImports[12] = "Print" + File.separator + "Print.java";
+        stdImports[13] = "Print" + File.separator + "Std_Print_Realiz.java";
+        stdImports[14] =
                 "Static_Array_Template" + File.separator
                         + "Std_Array_Realiz.java";
-        stdImports[13] =
+        stdImports[15] =
                 "Location_Linking_Template_1" + File.separator
                         + "Std_Location_Linking_Realiz.java";
     }

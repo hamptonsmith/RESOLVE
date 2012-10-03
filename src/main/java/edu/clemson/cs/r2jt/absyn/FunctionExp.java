@@ -61,18 +61,24 @@ package edu.clemson.cs.r2jt.absyn;
 import java.util.ListIterator;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.data.Symbol;
 
+import edu.clemson.cs.r2jt.mathtype.SymbolTableEntry;
 import edu.clemson.cs.r2jt.proving.ChainingIterator;
 import edu.clemson.cs.r2jt.proving.DummyIterator;
 
+import edu.clemson.cs.r2jt.init.Environment;
+
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 import edu.clemson.cs.r2jt.collections.Iterator;
 
-public class FunctionExp extends Exp {
+public class FunctionExp extends AbstractFunctionExp {
 
     // ===========================================================
     // Variables
@@ -96,7 +102,7 @@ public class FunctionExp extends Exp {
     /** If the type can be determined in the builder we set it here.  */
     private Type bType = null;
 
-    //private boolean isab;
+    private boolean isab;
 
     private int quantification = VarExp.NONE;
 
@@ -113,7 +119,7 @@ public class FunctionExp extends Exp {
         this.name = name;
         this.natural = natural;
         this.paramList = paramList;
-        //this.isab = false;
+        this.isab = false;
     }
 
     public FunctionExp(Location location, PosSymbol qualifier, PosSymbol name,
@@ -124,7 +130,7 @@ public class FunctionExp extends Exp {
         this.natural = natural;
         this.paramList = paramList;
         this.bType = b;
-        //this.isab = false;
+        this.isab = false;
     }
 
     public FunctionExp(Location location, PosSymbol qualifier, PosSymbol name,
@@ -134,7 +140,7 @@ public class FunctionExp extends Exp {
         this.name = name;
         this.natural = natural;
         this.paramList = paramList;
-        //this.isab = false;
+        this.isab = false;
         this.quantification = quantification;
     }
 
@@ -198,6 +204,7 @@ public class FunctionExp extends Exp {
     }
 
     /** Returns the value of the location variable. */
+    @Override
     public Location getLocation() {
         return location;
     }
@@ -252,6 +259,11 @@ public class FunctionExp extends Exp {
 
     public void setQuantification(int quantification) {
         this.quantification = quantification;
+    }
+
+    @Override
+    public void setQuantification(SymbolTableEntry.Quantification quantification) {
+        this.quantification = quantification.toVarExpQuantificationCode();
     }
 
     /** Sets the location variable to the specified value. */
@@ -321,6 +333,7 @@ public class FunctionExp extends Exp {
                         quantification);
 
         retval.setType(type);
+        retval.setMathType(myMathType);
 
         return retval;
     }
@@ -390,23 +403,22 @@ public class FunctionExp extends Exp {
         return sb.toString();
     }
 
-    /*
-    public String toIsabelleString(int indent){
-    	isab = true;
-    	StringBuffer sb = new StringBuffer();
-    	printSpace(indent, sb);
+    public String toIsabelleString(int indent) {
+        isab = true;
+        StringBuffer sb = new StringBuffer();
+        printSpace(indent, sb);
         sb.append("(");
-        sb.append(name.toString()+ " ");    
+        sb.append(name.toString() + " ");
 
         sb.append(isabParamListToString(paramList));
         sb.append(")");
-        return sb.toString(); 
-    }*/
+        return sb.toString();
+    }
 
     String paramListToString(List<FunctionArgList> paramList) {
         if (paramList != null) {
             String str = new String();
-            Iterator<FunctionArgList> i = paramList.iterator();
+            Iterator i = paramList.iterator();
             while (i.hasNext()) {
                 str = functionArgListToString((FunctionArgList) i.next());
             }
@@ -423,7 +435,7 @@ public class FunctionExp extends Exp {
 
     String expListToString(List<Exp> list) {
         StringBuffer str = new StringBuffer();
-        Iterator<Exp> i = list.iterator();
+        Iterator i = list.iterator();
         if (i.hasNext()) {
             Exp exp = (Exp) i.next();
             if (exp != null)
@@ -440,7 +452,7 @@ public class FunctionExp extends Exp {
     String isabParamListToString(List<FunctionArgList> paramList) {
         if (paramList != null) {
             String str = new String();
-            Iterator<FunctionArgList> i = paramList.iterator();
+            Iterator i = paramList.iterator();
             while (i.hasNext()) {
                 str = isabFunctionArgListToString((FunctionArgList) i.next());
             }
@@ -457,7 +469,7 @@ public class FunctionExp extends Exp {
 
     String isabExpListToString(List<Exp> list) {
         StringBuffer str = new StringBuffer();
-        Iterator<Exp> i = list.iterator();
+        Iterator i = list.iterator();
         if (i.hasNext()) {
             Exp exp = (Exp) i.next();
             if (exp != null)
@@ -508,7 +520,7 @@ public class FunctionExp extends Exp {
         clone.setName(createPosSymbol(this.getName().toString()));
         clone.setQualifier(this.getQualifier());
         if (this.getNatural() != null)
-            clone.setNatural((Exp) this.getNatural().clone());
+            clone.setNatural((Exp) Exp.clone(this.getNatural()));
         if (paramList != null) {
             Iterator<FunctionArgList> i = paramList.iterator();
             List<FunctionArgList> newFAL = new List<FunctionArgList>();
@@ -518,6 +530,7 @@ public class FunctionExp extends Exp {
             clone.setParamList(newFAL);
         }
         clone.setType(type);
+        clone.setMathType(myMathType);
         return clone;
     }
 
@@ -591,11 +604,11 @@ public class FunctionExp extends Exp {
                             return this;
                         }
                         else if (replacement instanceof DotExp) {
-                            DotExp exp = (DotExp) replacement.clone();
+                            DotExp exp = (DotExp) Exp.clone(replacement);
                             List<Exp> segments = exp.getSegments();
                             Exp result =
-                                    this.replace(old, segments.get(segments
-                                            .size() - 1));
+                                    Exp.replace(this, old, segments
+                                            .get(segments.size() - 1));
                             segments.remove(segments.size() - 1);
                             segments.add(result);
                             exp.setSegments(segments);
@@ -603,15 +616,6 @@ public class FunctionExp extends Exp {
                         }
                     }
                 }
-
-                //if(old instanceof VarExp && replacement instanceof DotExp){
-                //	if(((VarExp)old).getName().toString().equals(name.toString())){
-                //		List<Exp> lst = ((DotExp)replacement).getSegments();
-                //		this.name = ((VarExp)lst.get(1)).getName();
-                //		this.qualifier = ((VarExp)lst.get(0)).getName();
-                //		return this;
-                //	}
-                //}        		
             }
         }
 
@@ -649,7 +653,7 @@ public class FunctionExp extends Exp {
             Exp exp = (Exp) i.next();
             Exp tmp = null;
             if (exp != null)
-                tmp = exp.replace(old, replacement);
+                tmp = Exp.replace(exp, old, replacement);
             i.previous();
             i.remove();
             if (tmp != null)
@@ -668,7 +672,7 @@ public class FunctionExp extends Exp {
     }
 
     private void rememberVariablesInParamList(List<FunctionArgList> paramList) {
-        Iterator<FunctionArgList> i = paramList.iterator();
+        Iterator i = paramList.iterator();
         while (i.hasNext()) {
             rememberVariablesInFunctionArgList((FunctionArgList) i.next());
         }
@@ -716,7 +720,7 @@ public class FunctionExp extends Exp {
         PosSymbol newName = name.copy();
         Exp newNatural = null;
         if (natural != null)
-            newNatural = natural.copy();
+            newNatural = Exp.copy(natural);
         FunctionArgList newFAL = paramList.get(0).copy();
         List<FunctionArgList> newParamList = new List<FunctionArgList>();
         newParamList.add(newFAL);
@@ -725,7 +729,18 @@ public class FunctionExp extends Exp {
                 new FunctionExp(null, newQualifier, newName, newNatural,
                         newParamList, quantification);
         retval.setType(type);
+        retval.setMathType(myMathType);
         return retval;
+    }
+
+    @Override
+    public String getOperatorAsString() {
+        return this.name.getName();
+    }
+
+    @Override
+    public PosSymbol getOperatorAsPosSymbol() {
+        return getName();
     }
 
 }

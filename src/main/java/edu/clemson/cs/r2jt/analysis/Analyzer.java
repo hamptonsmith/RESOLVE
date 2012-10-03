@@ -77,11 +77,12 @@ import edu.clemson.cs.r2jt.location.ProofLocator;
 import edu.clemson.cs.r2jt.location.SymbolSearchException;
 import edu.clemson.cs.r2jt.location.TheoremLocator;
 import edu.clemson.cs.r2jt.location.VariableLocator;
+import edu.clemson.cs.r2jt.mathtype.ScopeRepository;
+import edu.clemson.cs.r2jt.mathtype.MathSymbolTable;
 import edu.clemson.cs.r2jt.proofchecking.ProofChecker;
 import edu.clemson.cs.r2jt.proving.Prover;
 import edu.clemson.cs.r2jt.sanitycheck.SanityCheckException;
 import edu.clemson.cs.r2jt.scope.*;
-import edu.clemson.cs.r2jt.translation.PrettyJavaTranslator;
 import edu.clemson.cs.r2jt.type.*;
 import edu.clemson.cs.r2jt.utilities.Flag;
 
@@ -130,11 +131,10 @@ public class Analyzer extends ResolveConceptualVisitor {
     //private Environment env;
     private final CompileEnvironment myInstanceEnvironment;
 
-    private SymbolTable table;
+    private OldSymbolTable table;
 
     private TypeMatcher tm = new TypeMatcher();
 
-    private MathExpTypeResolver metr;
     private ProgramExpTypeResolver petr;
 
     private ProofChecker pc;
@@ -147,42 +147,41 @@ public class Analyzer extends ResolveConceptualVisitor {
     //table of the concept associated with a realization that is currently
     //being parsed.  The name associated with the concept is also stored so
     //that the table can be retrieved lazily.
-    private PosSymbol myCurrentModuleName = null;
-    private SymbolTable myAssociatedConceptSymbolTable = null;
+    private PosSymbol myCurrentConceptName = null;
+    private OldSymbolTable myAssociatedConceptSymbolTable = null;
 
     // Stack of WhileStmts used for building the changing list
     private Stack<WhileStmt> whileStmts = new Stack<WhileStmt>();
+
+    private ScopeRepository myManlySymbolTable;
 
     // Constructors
 
     /**
      * Constructs an analyzer.
      */
-    public Analyzer(SymbolTable table, CompileEnvironment instanceEnvironment) {
+    public Analyzer(ScopeRepository aRealSymbolTable, OldSymbolTable table,
+            CompileEnvironment instanceEnvironment) {
         myInstanceEnvironment = instanceEnvironment;
-        //env = new Environment(instanceEnvironment);
+
         this.table = table;
         this.err = instanceEnvironment.getErrorHandler();
-        this.metr = new MathExpTypeResolver(table, tm, instanceEnvironment);
         this.petr = new ProgramExpTypeResolver(table, instanceEnvironment);
 
         if (myInstanceEnvironment.flags.isFlagSet(ProofChecker.FLAG_PROOFCHECK)) {
 
-            pc = new ProofChecker(table, tm, metr, myInstanceEnvironment);
-            this.metr.setPC(pc);
+            pc = new ProofChecker(table, tm, myInstanceEnvironment);
         }
         origErrorCount = err.getErrorCount();
 
         myEncounteredProcedures = new List<String>();
         err = instanceEnvironment.getErrorHandler();
+
+        myManlySymbolTable = aRealSymbolTable;
     }
 
     public static void setUpFlags() {
 
-    }
-
-    public MathExpTypeResolver getMathExpTypeResolver() {
-        return metr;
     }
 
     public TypeMatcher getTypeMatcher() {
@@ -225,7 +224,7 @@ public class Analyzer extends ResolveConceptualVisitor {
     //          exp.accept(this);
     //      }
 
-    public void visitModuleParameter(ModuleParameter par) {
+    public void visitModuleParameter(ModuleParameterDec par) {
         par.accept(this);
     }
 
@@ -258,7 +257,7 @@ public class Analyzer extends ResolveConceptualVisitor {
     }
 
     public void visitConceptModuleDec(ConceptModuleDec dec) {
-        myCurrentModuleName = dec.getName();
+        myCurrentConceptName = dec.getName();
         table.beginModuleScope();
         visitModuleParameterList(dec.getParameters());
         visitAssertion(dec.getRequirement());
@@ -273,7 +272,7 @@ public class Analyzer extends ResolveConceptualVisitor {
         visitDecList(dec.getDecs());
 
         table.endModuleScope();
-        myCurrentModuleName = null;
+        myCurrentConceptName = null;
     }
 
     public void visitEnhancementModuleDec(EnhancementModuleDec dec) {
@@ -287,7 +286,7 @@ public class Analyzer extends ResolveConceptualVisitor {
     }
 
     public void visitConceptBodyModuleDec(ConceptBodyModuleDec dec) {
-        myCurrentModuleName = dec.getName();
+
         //We're going to need this deeper in the tree, so save it to a global
         //variable.  Would like to do this functionally, but I don't want to
         //break things by changing public method type signatures.  -HwS
@@ -310,12 +309,10 @@ public class Analyzer extends ResolveConceptualVisitor {
         visitDecList(dec.getDecs());
 
         table.endModuleScope();
-        myCurrentModuleName = null;
     }
 
     public void visitEnhancementBodyModuleDec(EnhancementBodyModuleDec dec) {
 
-        myCurrentModuleName = dec.getName();
         //We're going to need this deeper in the tree, so save it to a global
         //variable.  Would like to do this functionally, but I don't want to
         //break things by changing public method type signatures.  -HwS
@@ -342,12 +339,10 @@ public class Analyzer extends ResolveConceptualVisitor {
         visitDecList(dec.getDecs());
 
         table.endModuleScope();
-        myCurrentModuleName = null;
 
     }
 
     public void visitFacilityModuleDec(FacilityModuleDec dec) {
-        myCurrentModuleName = dec.getName();
         table.beginModuleScope();
         if (dec.getFacilityInit() != null) {
             visitInitItem(dec.getFacilityInit());
@@ -359,7 +354,6 @@ public class Analyzer extends ResolveConceptualVisitor {
         visitDecList(dec.getDecs());
 
         table.endModuleScope();
-        myCurrentModuleName = null;
     }
 
     public void visitShortFacilityModuleDec(ShortFacilityModuleDec dec) {
@@ -398,17 +392,6 @@ public class Analyzer extends ResolveConceptualVisitor {
     //    	return params;
     //    }
 
-    private void matchExpressions(Exp exp1, Type returnType, boolean equalCase,
-            boolean strict) throws TypeResolutionException {
-
-        if (equalCase)
-            metr.setEqlCase();
-        Type t = metr.getMathExpType(exp1);
-        if (equalCase)
-            metr.unsetEqlCase();
-        matchTypes(exp1.getLocation(), t, returnType, strict);
-    }
-
     public void visitDefinitionDec(DefinitionDec dec) {
 
         /*if (dec.getName().getName().equals("N") && !env.debugOff()) {
@@ -425,13 +408,7 @@ public class Analyzer extends ResolveConceptualVisitor {
 
         if (dec.getDefinition() != null) {
             // If the defn. is null, don't typecheck
-            try {
-                matchExpressions(dec.getDefinition(), returnType, false, true);
-                storeValue(dec, dec.getDefinition());
-            }
-            catch (TypeResolutionException trex) {
-                // Error already reported; do nothing
-            }
+            storeValue(dec, dec.getDefinition());
         }
         table.endDefinitionScope();
     }
@@ -575,38 +552,10 @@ public class Analyzer extends ResolveConceptualVisitor {
         }
     }
 
-    public void matchTypes(Location loc, Type t1, Type t2, boolean strict) {
-        if (t1 == null || t2 == null)
-            return;
-        try {
-            if (!(metr.matchTypes(loc, t1, t2, true, strict))) {
-                String msg =
-                        expectedDiffTypeMessage(t2.toString(), t1.toString());
-                err.error(loc, msg);
-            }
-        }
-        catch (TypeResolutionException e) {
-            String msg = expectedDiffTypeMessage(t2.toString(), t1.toString());
-            err.error(loc, msg);
-        }
-    }
-
     public void visitMathAssertionDec(MathAssertionDec dec) {
         table.beginExpressionScope();
-        MathExpTypeResolver metr =
-                new MathExpTypeResolver(table, tm, myInstanceEnvironment);
-        try {
-            Type t1 = metr.getMathExpType(dec.getAssertion());
-            Type t2 = BooleanType.INSTANCE;
-            matchTypes(dec.getAssertion().getLocation(), t1, t2, true);
-            storeValue(dec, dec.getAssertion());
-        }
-        catch (TypeResolutionException trex) {
-
-        }
-        finally {
-            table.endExpressionScope();
-        }
+        storeValue(dec, dec.getAssertion());
+        table.endExpressionScope();
     }
 
     public void visitMathTypeDec(MathTypeDec dec) {
@@ -687,8 +636,7 @@ public class Analyzer extends ResolveConceptualVisitor {
     public void visitProcedureDec(ProcedureDec dec) {
 
         //Perform procedure parameter sanity checking.
-        // remove: these same checks are perfomed in the SanityCheck
-        //	sanityCheckProcedure(dec);
+        sanityCheckProcedure(dec);
 
         table.beginOperationScope();
         table.beginProcedureScope();
@@ -777,30 +725,30 @@ public class Analyzer extends ResolveConceptualVisitor {
 
     public void visitFacilityDec(FacilityDec dec) {
 
-        sanityCheckFacilityDeclarationParameters(dec);
+    //sanityCheckFacilityDeclarationParameters(dec);
 
-        // check instantiation AND arguments that are
-        // program expressions.
-        /*ConceptModuleDec cDec = null;
-        ConceptBodyModuleDec bDec = null;
-        ModuleID cid = ModuleID.createConceptID(dec.getConceptName());
-        if (myInstanceEnvironment.contains(cid))
-            cDec = (ConceptModuleDec)myInstanceEnvironment.getModuleDec(cid);
-        else {
-            String msg = facDecErrorMessage(dec.getName().getName());
-            err.error(dec.getName().getLocation(), msg);
-            return;
-        };
-        ModuleID bid = ModuleID.createConceptBodyID(dec.getBodyName(),
-                dec.getConceptName());
-        if (myInstanceEnvironment.contains(bid))
-            bDec = (ConceptBodyModuleDec)myInstanceEnvironment.getModuleDec(cid);
-        else {
-            String msg = facDecErrorMessage(dec.getName().getName());
-            err.error(dec.getName().getLocation(), msg);
-            return;
-        }*/
-
+    // check instantiation AND arguments that are
+    // program expressions.
+    /*  	ConceptModuleDec cDec = null;
+      	ConceptBodyModuleDec bDec = null;
+          ModuleID cid = ModuleID.createConceptID(dec.getConceptName());
+          if (env.contains(cid))
+              cDec = (ConceptModuleDec)env.getModuleDec(cid);
+          else {
+              String msg = facDecErrorMessage(dec.getName().getName());
+              err.error(dec.getName().getLocation(), msg);
+              return;
+          };
+          ModuleID bid = ModuleID.createConceptBodyID(dec.getBodyName(),
+                  dec.getConceptName());
+          if (env.contains(bid))
+              bDec = (ConceptBodyModuleDec)env.getModuleDec(cid);
+          else {
+              String msg = facDecErrorMessage(dec.getName().getName());
+              err.error(dec.getName().getLocation(), msg);
+              return;
+          }
+     */
     }
 
     // -----------------------------------------------------------
@@ -939,28 +887,14 @@ public class Analyzer extends ResolveConceptualVisitor {
                     err.error(loc, msg);
                     return;
                 }
-            }
-            if (!myInstanceEnvironment.flags
-                    .isFlagSet(PrettyJavaTranslator.FLAG_TRANSLATE)) {
-                // Making sure that we do not have something of VariableExp on the right hand side
-                // in a function assignment. - YS
                 if (petr.isVariable(stmt.getAssign())) {
-                    String msg =
-                            "Right hand side of the function assignment cannot be a variable expression! ";
-                    err.error(stmt.getAssign().getLocation(), msg);
-                    throw new TypeResolutionException();
-                }
-
-                // Making sure that for any entry replica call for arrays, we have a replica function
-                // defined for that type. - YS
-                if (stmt.getAssign() instanceof ProgramParamExp) {
-                    stmt.getAssign().accept(this);
+                    petr.checkReplica(stmt.getAssign().getLocation(), atype);
                 }
             }
         }
         catch (TypeResolutionException trex) {
+            err.error(stmt.getLocation(), "TypeResolutionException");
             // do nothing - the error was already reported
-            // err.error(stmt.getLocation(), "TypeResolutionException");            
         }
     }
 
@@ -1061,25 +995,16 @@ public class Analyzer extends ResolveConceptualVisitor {
      */
     private void doBaseStuff(DefinitionDec dec, Type definitionReturnType) {
         if (dec.getBase() != null) {
-            try {
-                matchExpressions(dec.getBase(), BooleanType.INSTANCE, true,
-                        true);
-
-                if (!checkSelfReference(dec.getName().getName(), dec.getBase())) {
-                    String msg = noSelfReference();
-                    err.error(dec.getBase().getLocation(), msg);
-                }
-
-                DefinitionEntry definition = getDefinitionEntry(dec);
-
-                if (definition != null) {
-                    definition.setBaseDefinition(dec.getBase());
-                    //storeValue(dec, dec.getBase());
-                }
+            if (!checkSelfReference(dec.getName().getName(), dec.getBase())) {
+                String msg = noSelfReference();
+                err.error(dec.getBase().getLocation(), msg);
             }
-            catch (TypeResolutionException trex) {
-                metr.unsetEqlCase();
-                // Error already reported; do nothing
+
+            DefinitionEntry definition = getDefinitionEntry(dec);
+
+            if (definition != null) {
+                definition.setBaseDefinition(dec.getBase());
+                //storeValue(dec, dec.getBase());
             }
         }
     }
@@ -1090,61 +1015,26 @@ public class Analyzer extends ResolveConceptualVisitor {
      */
     private void doHypothesisStuff(DefinitionDec dec, Type definitionReturnType) {
         if (dec.getHypothesis() != null) {
-            try {
-                matchExpressions(dec.getHypothesis(), BooleanType.INSTANCE,
-                        true, true);
+            if (!checkSelfReference(dec.getName().getName(), dec
+                    .getHypothesis())) {
 
-                if (!checkSelfReference(dec.getName().getName(), dec
-                        .getHypothesis())) {
-
-                    String msg = noSelfReference();
-                    err.error(dec.getHypothesis().getLocation(), msg);
-                }
-                storeValue(dec, dec.getHypothesis());
+                String msg = noSelfReference();
+                err.error(dec.getHypothesis().getLocation(), msg);
             }
-            catch (TypeResolutionException trex) {
-                metr.unsetEqlCase();
-                // Error already reported; do nothing
-            }
+            storeValue(dec, dec.getHypothesis());
         }
     }
 
     /**
      * A helper function for visitDefinitionDec.
      * 
-     * Takes a DefinitionDec and returns the math type of the returned by that
-     * definition.  
-     * 
-     * XXX : I don't really understand this one, just separating it
-     * out from visitDefinitionDec for clarity.  -HwS
+     * Takes a DefinitionDec and returns the math type returned by that
+     * definition.
      */
     private Type getDefinitionReturnType(DefinitionDec dec) {
-        Type returnType = null;
-        //List<Type> params = convertMathVarDecsToTypes(dec.getParameters());
 
-        // Set the return type of the definition (must be matched with contents
-        //     of the def.
-        if (isDecAVar(dec)) {
-            // If the definition has no params, look it up as a VarEntry
-            try {
-                VariableLocator vlocator = new VariableLocator(table, err);
-                VarEntry vEntry = vlocator.locateMathVariable(dec.getName());
-                returnType = vEntry.getType();
-            }
-            catch (SymbolSearchException ssex) {
-                // Error already reported by VariableLocator; do nothing
-            }
-        }
-        else if (getMathType(dec.getReturnTy()) instanceof FunctionType) {
-            FunctionType ftype =
-                    (FunctionType) (getMathType(dec.getReturnTy()));
-            returnType = ftype.getRange();
-        }
-        else {
-            returnType = getMathType(dec.getReturnTy());
-        }
-
-        return returnType;
+        //All hail the new type system!  Hail!  Hail!
+        return new NewType(dec.getReturnTy().getMathTypeValue());
     }
 
     // -----------------------------------------------------------
@@ -1232,8 +1122,8 @@ public class Analyzer extends ResolveConceptualVisitor {
         }
     }
 
-    private void visitModuleParameterList(List<ModuleParameter> pars) {
-        Iterator<ModuleParameter> i = pars.iterator();
+    private void visitModuleParameterList(List<ModuleParameterDec> pars) {
+        Iterator<ModuleParameterDec> i = pars.iterator();
         while (i.hasNext()) {
             visitModuleParameter(i.next());
         }
@@ -1274,76 +1164,12 @@ public class Analyzer extends ResolveConceptualVisitor {
         }
     }
 
-    /**
-     * Visits ProgramParamExp
-     */
-    public void visitProgramParamExp(ProgramParamExp exp) {
-        /* Check if the call statement is a Entry_Replica call */
-        if (exp.getName().getName().equals("Entry_Replica")) {
-            /* List of arguments */
-            List<ProgramExp> argList = exp.getArguments();
-
-            try {
-                /* Call the ProgramExp type checker to go find a Replica operation */
-                Type xtype = petr.getProgramExpType(argList.get(0));
-                petr.checkReplica(argList.get(0).getLocation(), xtype);
-            }
-            catch (TypeResolutionException e) {
-                /* Catch the error and print the message */
-                String msg = "Illegal array access, use swap instead.";
-                err.error(exp.getLocation(), msg);
-            }
-        }
-    }
-
     private void visitAssertion(Exp exp) {
-        if (exp != null) {
-            //For the moment, determine types on a best-effort basis
-            boolean errorState = err.getIgnore();
-            err.setIgnore(true);
 
-            try {
-                Type t1 = metr.getMathExpType(exp);
-                exp.setType(t1);
-
-                if (myInstanceEnvironment.flags.isFlagSet(FLAG_TYPECHECK)) {
-                    //Make sure the assertion is a boolean expression
-                    Type B = BooleanType.INSTANCE;
-                    matchTypes(exp.getLocation(), B, t1, false);
-                }
-            }
-            catch (TypeResolutionException trex) {
-                //System.out.println("Couldn't determine a type inside this assertion:");
-                // The code below was added to aid in troubleshooting
-                // TypeResolutionExceptions. It can be safely uncommented
-                // for troubleshooting purposes.
-                /*try {
-                	Type t1 = metr.getMathExpType(exp);
-                }
-                catch (TypeResolutionException trex2) {
-                	int i = 1;
-                }*/
-                throw new RuntimeException(trex);
-            }
-
-            err.setIgnore(errorState);
-        }
     }
 
     private void visitProgressMetric(Exp exp) {
-        if (exp != null) {
-            //For the moment, determine types on a best-effort basis
-            boolean errorState = err.getIgnore();
-            err.setIgnore(true);
 
-            try {
-                Type t1 = metr.getMathExpType(exp);
-                exp.setType(t1);
-            }
-            catch (TypeResolutionException trex) {}
-
-            err.setIgnore(errorState);
-        }
     }
 
     private void visitProgramExpOfType(ProgramExp exp, Type type) {
@@ -1375,10 +1201,6 @@ public class Analyzer extends ResolveConceptualVisitor {
             String msg = cantFindType("Std_Boolean_Fac.Boolean");
             err.error(exp.getLocation(), msg);
         }
-
-        // Making sure that for any entry replica call for arrays, we have a replica function
-        // defined for that type. - YS
-        exp.accept(this);
     }
 
     public Type getMathType(Ty ty) {
@@ -1431,7 +1253,7 @@ public class Analyzer extends ResolveConceptualVisitor {
     private String noSuchEnhancementConcept(String enhancementName,
             String conceptName) {
 
-        return "Cannot find an enhancement " + enhancementName + " to "
+        return "Cannot find an enhancment " + enhancementName + " to "
                 + " concept " + conceptName + ".";
     }
 
@@ -1481,7 +1303,7 @@ public class Analyzer extends ResolveConceptualVisitor {
     private String incompatibleParameterModes(Mode operationMode,
             Mode procedureMode) {
 
-        return "Corresponding parameter in " + myCurrentModuleName
+        return "Corresponding parameter in " + myCurrentConceptName
                 + " is in mode '" + operationMode + "'.  Here, this parameter "
                 + "is implemented with mode '" + procedureMode + "'.  This is "
                 + "not allowed.";
@@ -1536,7 +1358,7 @@ public class Analyzer extends ResolveConceptualVisitor {
      */
     private String noMatchingOperation(Symbol name) {
         return "No operation named " + name + " to match this procedure in "
-                + "concept " + myCurrentModuleName + ".";
+                + "concept " + myCurrentConceptName + ".";
     }
 
     /**
@@ -1726,8 +1548,7 @@ public class Analyzer extends ResolveConceptualVisitor {
         Type wrkType = null;
 
         for (ParameterVarDec p : parameters) {
-            wrkType = metr.getMathType(p.getTy());
-            parameterTypes.add(wrkType);
+            parameterTypes.add(new NewType(p.getMathType()));
         }
 
         return parameterTypes;
@@ -1909,7 +1730,7 @@ public class Analyzer extends ResolveConceptualVisitor {
                         enhancementName, conceptName);
 
         if (myInstanceEnvironment.contains(enhancementID)) {
-            SymbolTable enhancementTable =
+            OldSymbolTable enhancementTable =
                     myInstanceEnvironment.getSymbolTable(enhancementID);
 
             List<Entry> enhancementParameters =
@@ -1924,7 +1745,7 @@ public class Analyzer extends ResolveConceptualVisitor {
             }
 
             if (myInstanceEnvironment.contains(enhancementBodyID)) {
-                SymbolTable enhancementBodyTable =
+                OldSymbolTable enhancementBodyTable =
                         myInstanceEnvironment.getSymbolTable(enhancementBodyID);
 
                 List<Entry> enhancementBodyParameters =
@@ -1970,28 +1791,25 @@ public class Analyzer extends ResolveConceptualVisitor {
                         .getConceptName());
 
         if (myInstanceEnvironment.contains(bodyId)) {
-            SymbolTable bodyTable =
+            OldSymbolTable bodyTable =
                     myInstanceEnvironment.getSymbolTable(bodyId);
-            if (bodyTable != null) {
-                List<Entry> bodyParameters =
-                        bodyTable.getModuleScope().getModuleParameters();
+            List<Entry> bodyParameters =
+                    bodyTable.getModuleScope().getModuleParameters();
 
-                List<ModuleArgumentItem> declarationArguments =
-                        dec.getBodyParams();
+            List<ModuleArgumentItem> declarationArguments = dec.getBodyParams();
 
-                try {
-                    sanityCheckProvidedArguments(bodyParameters,
-                            declarationArguments);
-                }
-                catch (Exception e) {
-                    err.error(dec.getBodyName().getLocation(), e.getMessage());
-                }
+            try {
+                sanityCheckProvidedArguments(bodyParameters,
+                        declarationArguments);
+            }
+            catch (Exception e) {
+                err.error(dec.getBodyName().getLocation(), e.getMessage());
             }
         }
         else {
-            //System.err.println("Sanity Check skipping realization arguments " + 
-            //"for " + dec.getName() + " because no code for " +
-            //dec.getBodyName() + " is available.");
+            System.err.println("Sanity Check skipping realization arguments "
+                    + "for " + dec.getName() + " because no code for "
+                    + dec.getBodyName() + " is available.");
         }
     }
 
@@ -2005,7 +1823,7 @@ public class Analyzer extends ResolveConceptualVisitor {
         //This eventually checks the param types so it is not being moved to VisitorSanityCheck
         ModuleID conceptId = ModuleID.createConceptID(dec.getConceptName());
 
-        SymbolTable conceptTable =
+        OldSymbolTable conceptTable =
                 myInstanceEnvironment.getSymbolTable(conceptId);
         List<Entry> conceptParameters =
                 conceptTable.getModuleScope().getModuleParameters();
@@ -2190,13 +2008,14 @@ public class Analyzer extends ResolveConceptualVisitor {
     private void sanityCheckParameterType(Type operationType,
             Type procedureType, Dec procedure) throws SanityCheckException {
 
-        if (!(operationType.toString().equals(procedureType.toString()))) {
-            String iName =
-                    myAssociatedConceptSymbolTable.getModuleID().getName()
-                            .toString();
-            throw new SanityCheckException(incompatibleParameterTypes(iName,
-                    operationType, procedureType));
-        }
+    //TODO : We have no decent way of checking this at the moment.  Rethink
+    //       this entire sanity check.
+
+    /*if (!(operationType.toString().equals(procedureType.toString()))) {
+    	String iName = myAssociatedConceptSymbolTable.getModuleID().getName().toString();
+    	throw new SanityCheckException(
+    			incompatibleParameterTypes(iName, operationType, procedureType));			
+    }*/
     }
 
     /*private void sanityCheckParameterMode
@@ -2293,18 +2112,7 @@ public class Analyzer extends ResolveConceptualVisitor {
      */
     private void sanityCheckProvidedDefinition(VarEntry parameter,
             DefinitionEntry argument) {
-        Type argumentType = buildDefinitionEntryType(argument);
 
-        try {
-            Location errorLocation = argument.getName().getLocation();
-            if (!metr.matchTypes(errorLocation, parameter.getType(),
-                    argumentType, true, false)) {
-
-                err.error(errorLocation, incompatibleDefinitionTypesMessage(
-                        parameter.getType(), argumentType));
-            }
-        }
-        catch (Exception e) {}
     }
 
     /** Sanity checks the argument provided for a parameter that is meant to be
@@ -2413,10 +2221,8 @@ public class Analyzer extends ResolveConceptualVisitor {
         }
 
         //Make sure the mode is compatible.
-        //if (!Mode.implementsCompatible(parameterOperationParameter.getMode(), 
-        //argumentOperationParameter.getMode())) {
-        if (!Mode.implementsCompatible(argumentOperationParameter.getMode(),
-                parameterOperationParameter.getMode())) {
+        if (!Mode.implementsCompatible(parameterOperationParameter.getMode(),
+                argumentOperationParameter.getMode())) {
             throw new SanityCheckException(problemWithProvidedOperationMessage(
                     parameterIndex, incompatibleParameterModes(
                             parameterOperationParameter.getMode(),
@@ -2424,27 +2230,13 @@ public class Analyzer extends ResolveConceptualVisitor {
         }
 
         //Make sure the type is right.
-        //if (!parameterOperationParameter.getType().getProgramName().equals(
-        //argumentOperationParameter.getType().getProgramName())) {
-        if (!sanityCheckOperationParameterTypesMatch(
-                parameterOperationParameter.getType(),
-                argumentOperationParameter.getType())) {
+        if (!parameterOperationParameter.getType().getProgramName().equals(
+                argumentOperationParameter.getType().getProgramName())) {
             throw new SanityCheckException(problemWithProvidedOperationMessage(
                     parameterIndex, expectedDiffTypeMessage(
                             parameterOperationParameter.getType().asString(),
                             argumentOperationParameter.getType().asString())));
         }
-    }
-
-    private boolean sanityCheckOperationParameterTypesMatch(Type p1, Type p2) {
-        boolean isMatch = false;
-        if (p1.getProgramName().equals(p2.getProgramName())) {
-            isMatch = true;
-        }
-        else if (p1.getProgramName().getName().getName().equals("Entry")) {
-            isMatch = true;
-        }
-        return isMatch;
     }
 
     /** Sanity checks an operation named as an argument.  Evokes errors on
@@ -2506,16 +2298,6 @@ public class Analyzer extends ResolveConceptualVisitor {
         }
         else {
             ModuleScope curModuleScope = table.getModuleScope();
-            if (argument.getQualifier() != null) {
-                ModuleID qualID =
-                        ModuleID.createFacilityID(argument.getQualifier());
-                if (myInstanceEnvironment.contains(qualID)) {
-                    ModuleScope qualModuleScope =
-                            myInstanceEnvironment.getSymbolTable(qualID)
-                                    .getModuleScope();
-                    curModuleScope = qualModuleScope;
-                }
-            }
             if (curModuleScope
                     .containsOperation(argument.getName().getSymbol())) {
 
@@ -2528,11 +2310,6 @@ public class Analyzer extends ResolveConceptualVisitor {
                 catch (SanityCheckException e) {
                     err.error(argumentName.getLocation(), e.getMessage());
                 }
-            }
-            else {
-                String msg =
-                        "Unknown argument: \"" + argumentName.getName() + "\"";
-                err.error(argumentName.getLocation(), msg);
             }
         }
     }
@@ -2577,8 +2354,7 @@ public class Analyzer extends ResolveConceptualVisitor {
             Mode parameterMode = parameterAsVarEntry.getMode();
 
             if (parameterMode == Mode.DEFINITION) {
-                // This fails while checking with generic entries, so commented it out for now (Chuck)
-                //sanityCheckDefinitionArgument(parameterAsVarEntry, argument);
+                sanityCheckDefinitionArgument(parameterAsVarEntry, argument);
             }
             else {
                 //XXX : For the moment we assume if we've gotten here then the

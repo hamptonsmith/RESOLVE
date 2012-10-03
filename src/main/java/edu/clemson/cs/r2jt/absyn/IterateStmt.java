@@ -60,6 +60,9 @@ package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
 
 public class IterateStmt extends Statement {
 
@@ -100,6 +103,10 @@ public class IterateStmt extends Statement {
     // -----------------------------------------------------------
     // Get Methods
     // -----------------------------------------------------------
+
+    public Location getLocation() {
+        return maintaining.getLocation();
+    }
 
     /** Returns the value of the changing variable. */
     public List<VariableExp> getChanging() {

@@ -71,7 +71,7 @@ import edu.clemson.cs.r2jt.location.VariableLocator;
 import edu.clemson.cs.r2jt.location.SymbolSearchException;
 import edu.clemson.cs.r2jt.scope.Binding;
 import edu.clemson.cs.r2jt.scope.ModuleScope;
-import edu.clemson.cs.r2jt.scope.SymbolTable;
+import edu.clemson.cs.r2jt.scope.OldSymbolTable;
 import edu.clemson.cs.r2jt.scope.TypeHolder;
 import edu.clemson.cs.r2jt.type.*;
 
@@ -83,7 +83,7 @@ public class ProgramExpTypeResolver extends TypeResolutionVisitor {
     // Variables 
     // ===========================================================
 
-    private SymbolTable table;
+    private OldSymbolTable table;
 
     //private Environment env;
     //private CompileEnvironment myInstanceEnvironment;
@@ -94,7 +94,7 @@ public class ProgramExpTypeResolver extends TypeResolutionVisitor {
     // Constructors
     // ===========================================================
 
-    public ProgramExpTypeResolver(SymbolTable table,
+    public ProgramExpTypeResolver(OldSymbolTable table,
             CompileEnvironment instanceEnvironment) {
         //this.env = new Environment(instanceEnvironment);
         //myInstanceEnvironment = instanceEnvironment;
@@ -129,31 +129,15 @@ public class ProgramExpTypeResolver extends TypeResolutionVisitor {
 
     public void checkReplica(Location loc, Type atype)
             throws TypeResolutionException {
-        /* Variables 
-         * - YS */
         OperationLocator locator = new OperationLocator(table, err);
         PosSymbol name = new PosSymbol(loc, Symbol.symbol("Replica"));
-        PosSymbol qual = null;
-
-        /* Old code, not needed - YS
         Symbol qualsym = atype.getProgramName().getFacilityQualifier();
 
         assert qualsym != null : "qualsym is null";
 
-        PosSymbol  qual = null;
-        if(qualsym != null) qual = new PosSymbol(loc, qualsym);*/
-
-        /* Find the type of the array 
-         * - YS */
-        atype = getArrayType(loc, atype);
-        if (atype instanceof IndirectType) {
-            /* We got something of type Entry, 
-             * we need to know what type is it exactly 
-             * - YS */
-            atype = ((IndirectType) atype).getType();
-        }
-
-        /* Add the type to the arg type list - YS */
+        PosSymbol qual = null;
+        if (qualsym != null)
+            qual = new PosSymbol(loc, qualsym);
         List<Type> args = new List<Type>();
         args.add(atype);
 
@@ -270,31 +254,13 @@ public class ProgramExpTypeResolver extends TypeResolutionVisitor {
 
     public Type getProgramParamExpType(ProgramParamExp exp)
             throws TypeResolutionException {
-        /* Checks for if the function operation exists before we call it
-         * Note: This may not be the place that we throw this exception. - YS
-         */
-        try {
-            if (exp.getSemanticExp() == null) {
-                exp.setSemanticExp(extractSemanticExp(exp));
-                exp.getSemanticExp().setType(
-                        getProgramExpType(exp.getSemanticExp()));
-            }
+        if (exp.getSemanticExp() == null) {
+            exp.setSemanticExp(extractSemanticExp(exp));
+            exp.getSemanticExp().setType(
+                    getProgramExpType(exp.getSemanticExp()));
+        }
 
-            return getProgramExpType(exp.getSemanticExp());
-        }
-        catch (TypeResolutionException ex) {
-            String msg;
-            if (exp.getName().getName().equals("Replica")) {
-                msg = "Cannot locate a Replica operation for this variable";
-            }
-            else {
-                msg =
-                        "Cannot locate an operation with this name: "
-                                + exp.getName().getName();
-            }
-            err.error(exp.getLocation(), msg);
-            throw new TypeResolutionException();
-        }
+        return getProgramExpType(exp.getSemanticExp());
     }
 
     public Type getProgramFunctionExpType(ProgramFunctionExp exp)
@@ -774,31 +740,6 @@ public class ProgramExpTypeResolver extends TypeResolutionVisitor {
         else {
             assert false : "exp is invalid";
             return null;
-        }
-    }
-
-    // -----------------------------------------------------------
-    // Array Facility Type Methods
-    // -----------------------------------------------------------
-
-    /* Finds the type of the array */
-    private Type getArrayType(Location loc, Type type)
-            throws TypeResolutionException {
-        /* Gets rid of all the IndirectType wrappers */
-        while (type instanceof IndirectType) {
-            type = ((IndirectType) type).getType();
-        }
-
-        /* Check if it is a NameType containing a FunctionType */
-        if (type instanceof NameType
-                && ((NameType) type).getType() instanceof FunctionType) {
-            FunctionType fType = (FunctionType) ((NameType) type).getType();
-            return fType.getRange();
-        }
-        else {
-            String msg = expectingArrayMessage(type.toString());
-            err.error(loc, msg);
-            throw new TypeResolutionException();
         }
     }
 

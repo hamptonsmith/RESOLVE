@@ -59,13 +59,11 @@
 package edu.clemson.cs.r2jt.init;
 
 import java.io.File;
-import java.util.Iterator;
-
 import edu.clemson.cs.r2jt.absyn.ModuleDec;
 import edu.clemson.cs.r2jt.collections.List;
 import edu.clemson.cs.r2jt.data.ModuleID;
 import edu.clemson.cs.r2jt.data.Symbol;
-import edu.clemson.cs.r2jt.scope.SymbolTable;
+import edu.clemson.cs.r2jt.scope.OldSymbolTable;
 
 /**
  * A record of a module's compilation history. It consists of two main
@@ -92,7 +90,7 @@ public class ModuleRecord {
 
     private List<ModuleID> theories = new List<ModuleID>();
 
-    private SymbolTable table = null;
+    private OldSymbolTable table = null;
 
     private boolean errors = false;
 
@@ -129,7 +127,7 @@ public class ModuleRecord {
         return theories;
     }
 
-    public SymbolTable getSymbolTable() {
+    public OldSymbolTable getSymbolTable() {
         return table;
     }
 
@@ -149,24 +147,10 @@ public class ModuleRecord {
     public void setTheories(List<ModuleID> theories) {
         assert dec != null : "dec is null";
         assert table == null : "table is not null";
-        Iterator<ModuleID> it = theories.iterator();
-        while (it.hasNext()) {
-            ModuleID temp = it.next();
-            if (!this.theories.contains(temp)) {
-                this.theories.add(temp);
-            }
-        }
+        this.theories.addAll(theories);
     }
 
-    /* This is old code. We aren't checking if the theory file exist 
-     * in the theories list before adding it. - YS and Chuck
-    public void setTheories(List<ModuleID> theories) {
-        assert dec != null : "dec is null";
-        assert table == null : "table is not null";
-        this.theories.addAll(theories);
-    }*/
-
-    public void setSymbolTable(SymbolTable table) {
+    public void setSymbolTable(OldSymbolTable table) {
         assert dec != null : "dec is null";
         assert table != null : "table is null";
         this.table = table;

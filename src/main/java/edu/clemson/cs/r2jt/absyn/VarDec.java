@@ -58,6 +58,9 @@
 
 package edu.clemson.cs.r2jt.absyn;
 
+import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.data.Symbol;
 
@@ -147,7 +150,7 @@ public class VarDec extends Dec {
     public Object clone() {
         VarDec clone = new VarDec();
         clone.setName(createPosSymbol(this.getName().toString()));
-        clone.setTy((Ty) this.getTy().clone());
+        clone.setTy((Ty) this.getTy().copy());
         return clone;
     }
 

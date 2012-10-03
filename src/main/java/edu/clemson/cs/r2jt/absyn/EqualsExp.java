@@ -59,14 +59,19 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
+import edu.clemson.cs.r2jt.data.Symbol;
+import edu.clemson.cs.r2jt.errors.ErrorHandler;
 import edu.clemson.cs.r2jt.type.BooleanType;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
+import edu.clemson.cs.r2jt.init.Environment;
 
-public class EqualsExp extends Exp {
-
-    //private ErrorHandler err = ErrorHandler.getInstance();
+public class EqualsExp extends AbstractFunctionExp {
 
     // ===========================================================
     // Constants
@@ -127,7 +132,13 @@ public class EqualsExp extends Exp {
     // Get Methods
     // -----------------------------------------------------------
 
+    @Override
+    public int getQuantification() {
+        return VarExp.NONE;
+    }
+
     /** Returns the value of the location variable. */
+    @Override
     public Location getLocation() {
         return location;
     }
@@ -190,6 +201,11 @@ public class EqualsExp extends Exp {
         }
 
         return retval;
+    }
+
+    @Override
+    public PosSymbol getOperatorAsPosSymbol() {
+        return new PosSymbol(location, Symbol.symbol(getOperatorAsString()));
     }
 
     public Exp substituteChildren(java.util.Map<Exp, Exp> substitutions) {
@@ -286,13 +302,13 @@ public class EqualsExp extends Exp {
     public Exp replace(Exp old, Exp replacement) {
         if (!(old instanceof EqualsExp)) {
             EqualsExp newExp = new EqualsExp();
-            newExp.setLeft((Exp) left.clone());
-            newExp.setRight((Exp) right.clone());
+            newExp.setLeft((Exp) Exp.clone(left));
+            newExp.setRight((Exp) Exp.clone(right));
             newExp.setOperator(this.operator);
             newExp.setType(type);
             newExp.setLocation(this.location);
-            Exp lft = left.replace(old, replacement);
-            Exp rgt = right.replace(old, replacement);
+            Exp lft = Exp.replace(left, old, replacement);
+            Exp rgt = Exp.replace(right, old, replacement);
             if (lft != null)
                 newExp.setLeft(lft);
             if (rgt != null)
@@ -334,8 +350,8 @@ public class EqualsExp extends Exp {
 
     public Object clone() {
         EqualsExp clone = new EqualsExp();
-        clone.setLeft((Exp) this.getLeft().clone());
-        clone.setRight((Exp) this.getRight().clone());
+        clone.setLeft((Exp) Exp.copy(this.getLeft()));
+        clone.setRight((Exp) Exp.copy(this.getRight()));
         if (this.location != null)
             clone.setLocation((Location) this.getLocation().clone());
         clone.setOperator(this.getOperator());
@@ -396,8 +412,8 @@ public class EqualsExp extends Exp {
     public Exp copy() {
         Exp retval;
 
-        Exp newLeft = left.copy();
-        Exp newRight = right.copy();
+        Exp newLeft = Exp.copy(left);
+        Exp newRight = Exp.copy(right);
         int newOperator = operator;
         retval = new EqualsExp(null, newLeft, newOperator, newRight);
         retval.setType(type);
@@ -413,14 +429,11 @@ public class EqualsExp extends Exp {
         return simplified;
     }
 
-    /* Commented out because it is not used locally.
-     * - YS
-    private PosSymbol createPosSymbol(String name){
-    	PosSymbol posSym = new PosSymbol();
-    	posSym.setSymbol(Symbol.symbol(name));
-    	return posSym; 	
+    private PosSymbol createPosSymbol(String name) {
+        PosSymbol posSym = new PosSymbol();
+        posSym.setSymbol(Symbol.symbol(name));
+        return posSym;
     }
-     */
 
     public boolean equals(Exp exp) {
         if (exp instanceof EqualsExp)
@@ -430,6 +443,11 @@ public class EqualsExp extends Exp {
                 return true;
             }
         return false;
+    }
+
+    @Override
+    public PosSymbol getQualifier() {
+        return null;
     }
 
 }

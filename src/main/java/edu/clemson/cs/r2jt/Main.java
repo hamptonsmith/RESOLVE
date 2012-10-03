@@ -74,19 +74,18 @@ import edu.clemson.cs.r2jt.errors.ErrorHandler;
 import edu.clemson.cs.r2jt.init.CompileEnvironment;
 import edu.clemson.cs.r2jt.init.Controller;
 import edu.clemson.cs.r2jt.init.Environment;
+import edu.clemson.cs.r2jt.mathtype.MathSymbolTableBuilder;
 import edu.clemson.cs.r2jt.parsing.RSimpleTrans;
 import edu.clemson.cs.r2jt.proofchecking.ProofChecker;
 import edu.clemson.cs.r2jt.proving.Prover;
 import edu.clemson.cs.r2jt.verification.Verifier;
 import edu.clemson.cs.r2jt.scope.ModuleScope;
-import edu.clemson.cs.r2jt.scope.SymbolTable;
-import edu.clemson.cs.r2jt.translation.PrettyJavaTranslator;
+import edu.clemson.cs.r2jt.scope.OldSymbolTable;
 import edu.clemson.cs.r2jt.translation.Translator;
 import edu.clemson.cs.r2jt.treewalk.VisitorCodeGeneration;
 import edu.clemson.cs.r2jt.utilities.Flag;
 import edu.clemson.cs.r2jt.utilities.FlagDependencies;
 import edu.clemson.cs.r2jt.utilities.FlagDependencyException;
-import edu.clemson.cs.r2jt.vcgeneration.VCGenerator;
 
 /**
  * The main class for the Resolve compiler.
@@ -336,6 +335,9 @@ public class Main {
     private static void compileFiles(List<File> files,
             CompileEnvironment instanceEnvironment, MetaFile inputFile) {
 
+        MathSymbolTableBuilder symbolTable = new MathSymbolTableBuilder();
+        instanceEnvironment.setSymbolTable(symbolTable);
+
         for (Iterator<File> i = files.iterator(); i.hasNext();) {
             File file = i.next();
             if (file.isDirectory()) {
@@ -356,12 +358,12 @@ public class Main {
             }
             else {
                 instanceEnvironment.setTargetFile(file);
-                compileMainFile(file, instanceEnvironment);
+                compileMainFile(file, instanceEnvironment, symbolTable);
             }
         }
         if (files.size() == 0) {
             if (instanceEnvironment.flags.isFlagSet(ResolveCompiler.FLAG_WEB)) {
-                compileMainSource(inputFile, instanceEnvironment);
+                compileMainSource(inputFile, instanceEnvironment, symbolTable);
             }
         }
     }
@@ -382,10 +384,11 @@ public class Main {
     }
 
     public static void compileMainFile(File file,
-            CompileEnvironment instanceEnvironment) {
+            CompileEnvironment instanceEnvironment,
+            MathSymbolTableBuilder symbolTable) {
 
         Controller control = new Controller(instanceEnvironment);
-        control.compileTargetFile(file);
+        control.compileTargetFile(file, symbolTable);
 
         if (instanceEnvironment.showBuild()) {
             //           LOG.debug("showBuild flag set, printing module dec.");
@@ -401,10 +404,11 @@ public class Main {
     }
 
     public static void compileMainSource(MetaFile inputFile,
-            CompileEnvironment instanceEnvironment) {
+            CompileEnvironment instanceEnvironment,
+            MathSymbolTableBuilder symbolTable) {
 
         Controller control = new Controller(instanceEnvironment);
-        control.compileTargetSource(inputFile);
+        control.compileTargetSource(inputFile, symbolTable);
 
         /*if (env.showBuild()) {
         //           LOG.debug("showBuild flag set, printing module dec.");
@@ -430,7 +434,7 @@ public class Main {
 
     private static void printSymbolTable(File file, CompileEnvironment env) {
         if (env.compileCompleted(file)) {
-            SymbolTable table = env.getSymbolTable(env.getModuleID(file));
+            OldSymbolTable table = env.getSymbolTable(env.getModuleID(file));
             ModuleScope scope = table.getModuleScope();
 
             System.out.println();
@@ -555,9 +559,7 @@ public class Main {
             Translator.setUpFlags();
             Archiver.setUpFlags();
             ResolveCompiler.setUpFlags();
-            PrettyJavaTranslator.setUpFlags();
             RSimpleTrans.setUpFlags();
-            VCGenerator.setUpFlags();
 
             FlagDependencies.seal();
         }

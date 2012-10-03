@@ -60,7 +60,9 @@ package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Symbol;
 import edu.clemson.cs.r2jt.type.Type;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 import edu.clemson.cs.r2jt.data.PosSymbol;
@@ -342,7 +344,7 @@ public class MathRefExp extends Exp {
         List<VarExp> newParams = new List<VarExp>();
         Iterator<VarExp> paramsIt = params.iterator();
         while (paramsIt.hasNext()) {
-            newParams.add((VarExp) (paramsIt.next().copy()));
+            newParams.add((VarExp) (Exp.copy(paramsIt.next())));
         }
         return new MathRefExp(null, newKind, newId, newIndex, newSourceModule,
                 newParams);

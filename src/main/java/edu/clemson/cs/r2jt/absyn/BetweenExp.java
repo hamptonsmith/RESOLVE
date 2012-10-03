@@ -59,8 +59,13 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
+import edu.clemson.cs.r2jt.init.Environment;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.verification.AssertiveCode;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 import edu.clemson.cs.r2jt.collections.Iterator;
@@ -152,7 +157,7 @@ public class BetweenExp extends Exp {
             Iterator<Exp> i = lessExps.iterator();
             List<Exp> newLessExps = new List<Exp>();
             while (i.hasNext()) {
-                newLessExps.add((Exp) i.next().clone());
+                newLessExps.add((Exp) Exp.clone(i.next()));
             }
             clone.setLessExps(newLessExps);
         }
@@ -300,7 +305,7 @@ public class BetweenExp extends Exp {
             Exp exp = (Exp) i.next();
             Exp tmp = null;
             if (exp != null)
-                tmp = exp.replace(old, replacement);
+                tmp = Exp.replace(exp, old, replacement);
             i.previous();
             i.remove();
             if (tmp != null)
@@ -327,7 +332,7 @@ public class BetweenExp extends Exp {
         Iterator<Exp> it = lessExps.iterator();
         List<Exp> newLessExps = new List<Exp>();
         while (it.hasNext()) {
-            newLessExps.add(it.next().copy());
+            newLessExps.add(Exp.copy(it.next()));
         }
         Exp result = new BetweenExp(null, newLessExps);
         result.setType(type);

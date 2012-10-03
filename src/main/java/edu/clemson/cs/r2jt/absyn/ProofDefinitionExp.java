@@ -59,6 +59,7 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
@@ -174,17 +175,19 @@ public class ProofDefinitionExp extends LineNumberedExp {
     }
 
     public void setSubExpression(int index, Exp e) {
-        switch (index) {
+        throw new UnsupportedOperationException(
+                "Proof definition expression is immutable.");
+        /*switch (index) {
         case 0:
-            exp.setBase(e);
-            break;
+        	exp.setBase(e);
+        	break;
         case 1:
-            exp.setHypothesis(e);
-            break;
+        	exp.setHypothesis(e);
+        	break;
         case 2:
-            exp.setDefinition(e);
-            break;
-        }
+        	exp.setDefinition(e);
+        	break;
+        }*/
     }
 
     public boolean shallowCompare(Exp e2) {

@@ -28,12 +28,11 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import edu.clemson.cs.r2jt.analysis.MathExpTypeResolver;
-import edu.clemson.cs.r2jt.init.CompileEnvironment;
+import edu.clemson.cs.r2jt.mathtype.MTType;
+import edu.clemson.cs.r2jt.mathtype.MathSymbolTableBuilder;
 import edu.clemson.cs.r2jt.proving.absyn.NodeIdentifier;
 import edu.clemson.cs.r2jt.proving.absyn.PExp;
 import edu.clemson.cs.r2jt.proving.absyn.PSymbol;
-import edu.clemson.cs.r2jt.type.BooleanType;
 import edu.clemson.cs.r2jt.utilities.FlagDependencies;
 import edu.clemson.cs.r2jt.utilities.FlagDependencyException;
 
@@ -62,43 +61,41 @@ public class JProverFrame extends JFrame {
         p.setVisible(true);
 
         FlagDependencies.seal();
-        MathExpTypeResolver metr =
-                new MathExpTypeResolver(null, null,
-                        new CompileEnvironment(args));
+        MathSymbolTableBuilder bldr = new MathSymbolTableBuilder();
 
         List<PExp> conjuncts = new LinkedList<PExp>();
 
-        List<PExp> expArgs = new LinkedList<PExp>();
-        expArgs.add(new PSymbol(BooleanType.INSTANCE, "x", metr));
-        expArgs.add(new PSymbol(BooleanType.INSTANCE, "y", metr));
+        MTType bool = bldr.getTypeGraph().BOOLEAN;
 
-        conjuncts.add(new PSymbol(BooleanType.INSTANCE, "=", expArgs,
-                PSymbol.DisplayType.INFIX, metr));
+        List<PExp> expArgs = new LinkedList<PExp>();
+        expArgs.add(new PSymbol(bool, null, "x"));
+        expArgs.add(new PSymbol(bool, null, "y"));
+
+        conjuncts.add(new PSymbol(bool, null, "=", expArgs,
+                PSymbol.DisplayType.INFIX));
 
         expArgs.clear();
-        expArgs.add(new PSymbol(BooleanType.INSTANCE, "z", metr));
+        expArgs.add(new PSymbol(bool, null, "z"));
 
-        conjuncts.add(new PSymbol(BooleanType.INSTANCE, "not", expArgs,
-                PSymbol.DisplayType.PREFIX, metr));
+        conjuncts.add(new PSymbol(bool, null, "not", expArgs,
+                PSymbol.DisplayType.PREFIX));
 
         Antecedent a = new Antecedent(conjuncts);
 
         conjuncts.clear();
         expArgs.clear();
-        expArgs.add(new PSymbol(BooleanType.INSTANCE, "b", metr));
-        expArgs.add(new PSymbol(BooleanType.INSTANCE, "c", metr));
+        expArgs.add(new PSymbol(bool, null, "b"));
+        expArgs.add(new PSymbol(bool, null, "c"));
 
         PExp first =
-                new PSymbol(BooleanType.INSTANCE, "+", expArgs,
-                        PSymbol.DisplayType.INFIX, metr);
+                new PSymbol(bool, null, "+", expArgs, PSymbol.DisplayType.INFIX);
 
         expArgs.clear();
-        expArgs.add(new PSymbol(BooleanType.INSTANCE, "a", metr));
+        expArgs.add(new PSymbol(bool, null, "a"));
         expArgs.add(first);
 
         PExp cc =
-                new PSymbol(BooleanType.INSTANCE, "*", expArgs,
-                        PSymbol.DisplayType.INFIX, metr);
+                new PSymbol(bool, null, "*", expArgs, PSymbol.DisplayType.INFIX);
         conjuncts.add(cc);
 
         Consequent c = new Consequent(conjuncts);

@@ -58,9 +58,14 @@
 
 package edu.clemson.cs.r2jt.absyn;
 
+import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 
 public class OldExp extends Exp {
@@ -181,7 +186,7 @@ public class OldExp extends Exp {
 
     public Object clone() {
         OldExp clone = new OldExp();
-        clone.setExp((Exp) this.getExp().clone());
+        clone.setExp((Exp) Exp.clone(this.getExp()));
         clone.setLocation(this.getLocation());
         clone.setType(getType());
         return clone;
@@ -208,7 +213,7 @@ public class OldExp extends Exp {
         if (old instanceof OldExp) {
             if (replacement instanceof OldExp) {
                 Exp tmp =
-                        exp.replace(((OldExp) old).getExp(),
+                        Exp.replace(exp, ((OldExp) old).getExp(),
                                 ((OldExp) replacement).getExp());
                 if (tmp != null) {
                     exp = tmp;
@@ -216,7 +221,8 @@ public class OldExp extends Exp {
                 }
             }
             else {
-                Exp tmp = exp.replace(((OldExp) old).getExp(), replacement);
+                Exp tmp =
+                        Exp.replace(exp, ((OldExp) old).getExp(), replacement);
                 if (tmp != null)
                     return tmp;
             }
@@ -229,7 +235,7 @@ public class OldExp extends Exp {
                     if (!(replacement instanceof VarExp && (((VarExp) replacement)
                             .getName().getName().startsWith("?") || ((VarExp) replacement)
                             .getName().getName().startsWith("_")))) {
-                        exp = exp.replace(old, replacement);
+                        exp = Exp.replace(exp, old, replacement);
                     }
                     else {
                         List<FunctionArgList> paramList =
@@ -257,7 +263,7 @@ public class OldExp extends Exp {
     }
 
     public Exp copy() {
-        Exp newExp = exp.copy();
+        Exp newExp = Exp.copy(exp);
         newExp = new OldExp(getLocation(), newExp);
         newExp.setType(getType());
         return newExp;

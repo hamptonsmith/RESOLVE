@@ -68,7 +68,6 @@ import edu.clemson.cs.r2jt.collections.Iterator; // import
 // edu.clemson.cs.r2jt.errors.*;
 import edu.clemson.cs.r2jt.init.CompileEnvironment;
 import edu.clemson.cs.r2jt.errors.ErrorHandler;
-import edu.clemson.cs.r2jt.analysis.MathExpTypeResolver;
 
 public class PrintAssertions extends ResolveConceptualVisitor {
 
@@ -478,7 +477,6 @@ public class PrintAssertions extends ResolveConceptualVisitor {
                     }
                 }
                 else if (exp.getLeft() instanceof InfixExp) {
-                    sb.append("(");
                     getInfixAltString(((InfixExp) exp.getLeft()), 0, mycount);
                 }
                 else {
@@ -935,12 +933,6 @@ public class PrintAssertions extends ResolveConceptualVisitor {
 
                 }
                 if (type == null) {
-                    MathExpTypeResolver METR =
-                            new MathExpTypeResolver(myInstanceEnvironment
-                                    .getSymbolTable(myInstanceEnvironment
-                                            .getModuleID(myInstanceEnvironment
-                                                    .getTargetFile())),
-                                    new TypeMatcher(), myInstanceEnvironment);
                     //type = METR.getVarExpType(exp);
 
                     //	typeStr = type.toMath().toString().substring(0, (type.toMath()).toString().lastIndexOf("_Theory"));
@@ -1029,19 +1021,7 @@ public class PrintAssertions extends ResolveConceptualVisitor {
 
                 }
                 if (type == null) {
-                    MathExpTypeResolver METR =
-                            new MathExpTypeResolver(myInstanceEnvironment
-                                    .getSymbolTable(myInstanceEnvironment
-                                            .getModuleID(myInstanceEnvironment
-                                                    .getTargetFile())),
-                                    new TypeMatcher(), myInstanceEnvironment);
-                    type = METR.getVarExpType(exp);
-
-                    typeStr =
-                            type.toMath().toString().substring(
-                                    0,
-                                    (type.toMath()).toString().lastIndexOf(
-                                            "_Theory"));
+                    typeStr = exp.getMathType().toString();
                 }
                 if (typeStr == null) {
                     sb.append(sb2.toString());

@@ -6,12 +6,9 @@ import java.util.HashMap;
 
 import edu.clemson.cs.r2jt.compilereport.CompileReport;
 import edu.clemson.cs.r2jt.data.MetaFile;
-import edu.clemson.cs.r2jt.data.ModuleKind;
 import edu.clemson.cs.r2jt.proving.Prover;
 import edu.clemson.cs.r2jt.utilities.Flag;
 import edu.clemson.cs.r2jt.utilities.FlagDependencies;
-
-// import webui.utils.WebSocketWriter;
 
 public class ResolveCompiler {
 
@@ -76,8 +73,6 @@ public class ResolveCompiler {
     private CompileReport myCompileReport;
     private MetaFile myInputFile;
 
-    //private WebSocketWriter myWsWriter = null;
-
     public ResolveCompiler(String[] args, MetaFile inputFile,
             String customFacilityName, HashMap<String, MetaFile> userFileMap) {
         myCompileReport = new CompileReport();
@@ -101,60 +96,9 @@ public class ResolveCompiler {
         //Main.main(args);
     }
 
-    public ResolveCompiler(String[] args) {
-        myCompileReport = new CompileReport();
-        //myCompileReport.setFacilityName(inputFile.getMyFileName());
-        //myTargetFileName = fileArray[0];
-        //myTargetSource = fileArray[3];
-        myUserFileMap = new HashMap<String, MetaFile>();
-        //System.out.println(fileName);
-        //Main.main(args);
-    }
-
-    public ResolveCompiler(String[] args, HashMap<String, MetaFile> userFileMap) {
-        myCompileReport = new CompileReport();
-        //myCompileReport.setFacilityName(inputFile.getMyFileName());
-        //myTargetFileName = fileArray[0];
-        //myTargetSource = fileArray[3];
-        //myUserFileMap = userFileMap;
-        myUserFileMap = new HashMap<String, MetaFile>();
-        //System.out.println(fileName);
-        //Main.main(args);
-    }
-
-    public void createMeta(String fileName, String assocConcept, String pkg,
-            String fileSource, String modKind) {
-        //String fileName, String assocConcept, String pkg, String fileSource, ModuleKind kind
-        ModuleKind kind = null;
-        if (modKind.equals("CONCEPT"))
-            kind = ModuleKind.CONCEPT;
-        else if (modKind.equals("ENHANCEMENT"))
-            kind = ModuleKind.ENHANCEMENT;
-        else if (modKind.equals("FACILITY"))
-            kind = ModuleKind.FACILITY;
-        else if (modKind.equals("REALIZATION"))
-            kind = ModuleKind.REALIZATION;
-        else if (modKind.equals("THEORY"))
-            kind = ModuleKind.THEORY;
-        else
-            kind = ModuleKind.UNDEFINED;
-
-        myInputFile =
-                new MetaFile(fileName, assocConcept, pkg, fileSource, kind);
-        String key = pkg + "." + fileName;
-        myUserFileMap.put(key, myInputFile);
-    }
-
     public void compile(String[] args) {
-        //System.out.println("using testing compiler");
         Main.runMain(args, myCompileReport, myInputFile, myUserFileMap);
     }
-
-    /*public void wsCompile(String[] args, WebSocketWriter writer){
-            myWsWriter = writer;
-            //myCompileReport.setWsWriter(writer);
-    	Main.runMain(args, myCompileReport, myInputFile, myUserFileMap);
-    }*/
 
     /*public void setFacilityName(String facName){
     	myReport.setFacilityName(facName);

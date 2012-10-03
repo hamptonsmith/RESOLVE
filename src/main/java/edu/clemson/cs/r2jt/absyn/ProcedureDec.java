@@ -59,6 +59,8 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.collections.Iterator;
 
@@ -92,8 +94,12 @@ public class ProcedureDec extends Dec {
     /** The variables member. */
     private List<AuxVarDec> aux_variables;
 
+    private StructureExp BEGIN_PROGRAM_STUFF = StructureExp.PROGRAM_WORLD_START;
+
     /** The statements member. */
     private List<Statement> statements;
+
+    private StructureExp END_PROGRAM_STUFF = StructureExp.PROGRAM_WORLD_END;
 
     /** The recursive member. */
     private boolean recursive;

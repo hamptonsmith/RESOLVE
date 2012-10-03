@@ -59,6 +59,8 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 
 public class ShortFacilityModuleDec extends ModuleDec {
@@ -72,9 +74,6 @@ public class ShortFacilityModuleDec extends ModuleDec {
 
     /** The dec member. */
     private FacilityDec dec;
-
-    /** The usesItems member. */
-    private List<UsesItem> usesItems;
 
     // ===========================================================
     // Constructors

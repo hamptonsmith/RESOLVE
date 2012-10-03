@@ -60,6 +60,8 @@ package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 
 public class CallStmt extends Statement {
@@ -97,6 +99,10 @@ public class CallStmt extends Statement {
     // -----------------------------------------------------------
     // Get Methods
     // -----------------------------------------------------------
+
+    public Location getLocation() {
+        return name.getLocation();
+    }
 
     /** Returns the value of the qualifier variable. */
     public PosSymbol getQualifier() {
@@ -188,7 +194,7 @@ public class CallStmt extends Statement {
 
     String argumentsToString(List<ProgramExp> arguments) {
         String str = new String();
-        Iterator<ProgramExp> i = arguments.iterator();
+        Iterator i = arguments.iterator();
         while (i.hasNext()) {
             ProgramExp exp = (ProgramExp) i.next();
             str = str.concat(exp.toString(0));

@@ -141,6 +141,8 @@ public class VarExp extends Exp {
     public Exp substituteChildren(java.util.Map<Exp, Exp> substitutions) {
         Exp retval = new VarExp(location, qualifier, name, quantification);
         retval.setType(type);
+        retval.setMathType(getMathType());
+        retval.setMathTypeValue(getMathTypeValue());
 
         return retval;
     }
@@ -344,14 +346,16 @@ public class VarExp extends Exp {
     }
 
     public Object clone() {
-        PosSymbol newName = null;
+        VarExp clone = new VarExp();
         if (this.getName() != null) {
-            newName = createPosSymbol((this.getName().toString()));
+            clone.setName(createPosSymbol((this.getName().toString())));
         }
-
-        VarExp clone = new VarExp(location, qualifier, newName);
+        clone.setLocation(this.location);
+        clone.setQualifier(this.qualifier);
         clone.setQuantification(this.quantification);
         clone.setType(this.type);
+        clone.setMathType(getMathType());
+        clone.setMathTypeValue(getMathTypeValue());
         return clone;
     }
 
@@ -386,7 +390,7 @@ public class VarExp extends Exp {
         if (name != null) {
             if (old instanceof VarExp) {
                 if (((VarExp) old).getName().toString().equals(name.toString())) {
-                    return (Exp) replacement.clone();
+                    return Exp.copy(replacement);
                 }
                 /*else {
                 	return this;
@@ -425,12 +429,23 @@ public class VarExp extends Exp {
         retval = new VarExp(location, newQualifier, newName, quantification);
         retval.setType(type);
         retval.setIsLocal(local);
+        retval.setMathType(getMathType());
+        retval.setMathTypeValue(getMathTypeValue());
 
         return retval;
     }
 
     public Exp simplify() {
         return this;
+    }
+
+    public static VarExp getTrueVarExp() {
+        Symbol trueSym = Symbol.symbol("true");
+        VarExp trueExp = new VarExp();
+        PosSymbol truePosSym = new PosSymbol();
+        truePosSym.setSymbol(trueSym);
+        trueExp.setName(truePosSym);
+        return trueExp;
     }
 
     public boolean equals(Exp exp) {

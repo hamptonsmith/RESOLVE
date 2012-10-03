@@ -58,6 +58,9 @@
 
 package edu.clemson.cs.r2jt.absyn;
 
+import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 
 public class UsesItem extends ResolveConceptualElement {
@@ -86,6 +89,10 @@ public class UsesItem extends ResolveConceptualElement {
     // -----------------------------------------------------------
     // Get Methods
     // -----------------------------------------------------------
+
+    public Location getLocation() {
+        return name.getLocation();
+    }
 
     /** Returns the value of the name variable. */
     public PosSymbol getName() {

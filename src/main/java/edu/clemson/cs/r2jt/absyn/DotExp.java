@@ -61,10 +61,15 @@ package edu.clemson.cs.r2jt.absyn;
 import java.util.ListIterator;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 import edu.clemson.cs.r2jt.collections.Iterator;
+import edu.clemson.cs.r2jt.init.Environment;
 
 public class DotExp extends Exp {
 
@@ -207,7 +212,7 @@ public class DotExp extends Exp {
         Exp clonedSegment;
         while (i.hasNext()) {
             curSegment = i.next();
-            clonedSegment = (Exp) curSegment.clone();
+            clonedSegment = (Exp) Exp.clone(curSegment);
             clonedSegment.setType(curSegment.getType());
             newSegments.add(clonedSegment);
         }
@@ -272,13 +277,13 @@ public class DotExp extends Exp {
         Iterator<Exp> it = segments.iterator();
         List<Exp> newSegments = new List<Exp>();
         while (it.hasNext()) {
-            newSegments.add(it.next().copy());
+            newSegments.add(Exp.copy(it.next()));
         }
 
         Exp newSemanticExp = null;
 
         if (semanticExp != null) {
-            newSemanticExp = semanticExp.copy();
+            newSemanticExp = Exp.copy(semanticExp);
         }
 
         retval = new DotExp(null, newSegments, newSemanticExp);
@@ -321,7 +326,7 @@ public class DotExp extends Exp {
         for (int count = 0; count < this.getSegments().size(); count++) {
             Exp oldExp = this.getSegments().get(count);
             if (oldExp instanceof FunctionExp) {
-                Exp newExp = oldExp.replace(old, replacement);
+                Exp newExp = Exp.replace(oldExp, old, replacement);
                 if (newExp != null) {
                     segments.remove(count);
                     segments.add(count, newExp);
@@ -335,34 +340,26 @@ public class DotExp extends Exp {
                 Exp name = it.next();
                 if (name instanceof FunctionExp) {
                     int index = it.nextIndex();
-                    Exp newName = name.replace(old, replacement);
+                    Exp newName = Exp.replace(name, old, replacement);
 
                     if (!newName.equals(name)) {
-                        /* Weird way of doing it. Replaced it with the following. - YS
-                        segments.remove(it.nextIndex()-1);
-                        segments.add(it.nextIndex()-1, newName);
-                         */
-                        segments.remove(index - 1);
-                        segments.add(index - 1, newName);
+                        segments.remove(it.nextIndex() - 1);
+                        segments.add(it.nextIndex() - 1, newName);
                         it = segments.iterator(); // Start Over. Inefficient, but works for now
                     }
 
                 }
                 else if (name instanceof VariableNameExp) {
                     int index = it.nextIndex();
-                    VariableExp newName = (VariableExp) name.clone();
+                    VariableExp newName = (VariableExp) Exp.clone(name);
                     /* Was:
                      * new VarExp(null, null, 
                     		((VariableNameExp)name).getName());
                      */
 
                     if (!newName.equals(name)) {
-                        /* Weird way of doing it. Replaced it with the following. - YS
-                        segments.remove(it.nextIndex()-1);
-                        segments.add(it.nextIndex()-1, newName);
-                         */
-                        segments.remove(index - 1);
-                        segments.add(index - 1, newName);
+                        segments.remove(it.nextIndex() - 1);
+                        segments.add(it.nextIndex() - 1, newName);
                         it = segments.iterator(); // Start Over. Inefficient, but works for now
                     }
                 }
@@ -384,14 +381,14 @@ public class DotExp extends Exp {
                     else if (((VarExp) old).getName().toString().equals(
                             ((VarExp) name).getName().toString()) /*&& (replacement instanceof VarExp)*/) {
                         segments.remove(0);
-                        segments.add(0, (Exp) (replacement.clone()));
+                        segments.add(0, (Exp) (Exp.clone(replacement)));
 
                         return this;
                     }
                 }
                 else if (old instanceof OldExp && name instanceof OldExp/* && replacement instanceof VarExp*/) {
                     if (replacement instanceof DotExp) {
-                        name = name.replace(old, replacement);
+                        name = Exp.replace(name, old, replacement);
                         if (name != null) {
                             segments.remove(0);
                             segments.addAll(0, ((DotExp) replacement)
@@ -400,10 +397,10 @@ public class DotExp extends Exp {
                         }
                     }
                     else {
-                        name = name.replace(old, replacement);
+                        name = Exp.replace(name, old, replacement);
                         if (name != null) {
                             segments.remove(0);
-                            segments.add(0, (Exp) (name.clone()));
+                            segments.add(0, (Exp) (Exp.clone(name)));
                             return this;
                         }
                     }
@@ -478,15 +475,14 @@ public class DotExp extends Exp {
         }
 
         if (old.getSegments().size() <= current.getSegments().size()) {
-            List<Exp> newSegments = new List<Exp>();
+            List<Exp> newSegments = new List();
             if (newExp instanceof DotExp) {
 
                 newSegments.addAll(0, ((DotExp) newExp).getSegments());
             }
-            /* Weird? Probably not needed. - YS
-            else{
-            	newSegments = newSegments;
-            }*/
+            else {
+                newSegments = newSegments;
+            }
             for (int count = 0; count < old.getSegments().size(); count++) {
 
                 Exp oldExp = old.getSegments().get(count);

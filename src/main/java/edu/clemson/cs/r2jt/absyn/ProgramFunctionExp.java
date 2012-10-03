@@ -59,7 +59,9 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
@@ -226,7 +228,7 @@ public class ProgramFunctionExp extends ProgramExp {
 
     String argumentsToString(List<ProgramExp> arguments) {
         String str = new String();
-        Iterator<ProgramExp> i = arguments.iterator();
+        Iterator i = arguments.iterator();
         while (i.hasNext()) {
             ProgramExp exp = (ProgramExp) i.next();
             str = str.concat(exp.toString(0));

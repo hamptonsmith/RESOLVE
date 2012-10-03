@@ -103,12 +103,6 @@ public class MetaFile {
         else {
             filePath += File.separator + "Concepts" + File.separator;
         }
-        if (myPkg.equals("Static_Array_Template")) {
-            myPkg = "Standard" + File.separator + "Static_Array_Template";
-        }
-        else if (myPkg.equals("Location_Linking_Template_1")) {
-            myPkg = "Standard" + File.separator + "Location_Linking_Template_1";
-        }
         filePath += myPkg + File.separator + myFileName + myKind.getExtension();
         return new File(filePath);
     }

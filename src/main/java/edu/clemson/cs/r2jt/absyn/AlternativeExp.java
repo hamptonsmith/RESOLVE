@@ -59,8 +59,12 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 import edu.clemson.cs.r2jt.collections.Iterator;
 
@@ -242,11 +246,11 @@ public class AlternativeExp extends Exp {
     }
 
     public Exp replace(Exp old, Exp replace) {
-        AlternativeExp result = (AlternativeExp) copy();
+        AlternativeExp result = (AlternativeExp) Exp.copy(this);
 
         List<AltItemExp> itemsCopy = new List<AltItemExp>();
         for (AltItemExp item : alternatives) {
-            itemsCopy.add((AltItemExp) item.replace(old, replace));
+            itemsCopy.add((AltItemExp) Exp.replace(item, old, replace));
         }
         result.alternatives = itemsCopy;
 
@@ -257,7 +261,7 @@ public class AlternativeExp extends Exp {
         List<AltItemExp> newAlternatives = new List<AltItemExp>();
         Iterator<AltItemExp> it = alternatives.iterator();
         while (it.hasNext()) {
-            newAlternatives.add((AltItemExp) (it.next().clone()));
+            newAlternatives.add((AltItemExp) (Exp.clone(it.next())));
         }
 
         Exp result = new AlternativeExp(null, newAlternatives);
@@ -270,7 +274,7 @@ public class AlternativeExp extends Exp {
         List<AltItemExp> newAlternatives = new List<AltItemExp>();
         Iterator<AltItemExp> it = alternatives.iterator();
         while (it.hasNext()) {
-            newAlternatives.add((AltItemExp) (it.next().copy()));
+            newAlternatives.add((AltItemExp) (Exp.copy(it.next())));
         }
 
         Exp result = new AlternativeExp(null, newAlternatives);
@@ -281,7 +285,7 @@ public class AlternativeExp extends Exp {
 
     public Exp remember() {
 
-        AlternativeExp result = (AlternativeExp) copy();
+        AlternativeExp result = (AlternativeExp) Exp.copy(this);
 
         List<AltItemExp> itemsCopy = new List<AltItemExp>();
         for (AltItemExp item : alternatives) {

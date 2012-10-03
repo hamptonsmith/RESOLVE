@@ -5,25 +5,20 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.JDialog;
-
 import edu.clemson.cs.r2jt.absyn.EqualsExp;
 import edu.clemson.cs.r2jt.absyn.Exp;
-import edu.clemson.cs.r2jt.analysis.MathExpTypeResolver;
 
 public class GuidedRuleChooser extends RuleProvider {
 
     private List<MatchReplace> myGlobalRules = new LinkedList<MatchReplace>();
     private List<Exp> myExpCorrespondance = new LinkedList<Exp>();
-    private MathExpTypeResolver myTyper;
 
     private boolean myLockedFlag;
 
     private DirectReplaceWrapper myAntecedentWrapper =
             new DirectReplaceWrapper();
 
-    public GuidedRuleChooser(MathExpTypeResolver typer) {
-        myTyper = typer;
+    public GuidedRuleChooser() {
         myLockedFlag = false;
     }
 
@@ -48,14 +43,14 @@ public class GuidedRuleChooser extends RuleProvider {
                 //Substitute right expression for left
                 MatchReplace matcher =
                         new BindReplace(equivalency.getLeft(), equivalency
-                                .getRight(), myTyper);
+                                .getRight());
                 myGlobalRules.add(matcher);
                 myExpCorrespondance.add(rule);
 
                 //Substitute left expression for left
                 matcher =
                         new BindReplace(equivalency.getRight(), equivalency
-                                .getLeft(), myTyper);
+                                .getLeft());
                 myGlobalRules.add(matcher);
                 myExpCorrespondance.add(rule);
             }

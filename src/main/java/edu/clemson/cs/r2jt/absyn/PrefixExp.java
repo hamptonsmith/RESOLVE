@@ -58,13 +58,18 @@
 
 package edu.clemson.cs.r2jt.absyn;
 
+import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.Symbol;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 
-public class PrefixExp extends Exp {
+public class PrefixExp extends AbstractFunctionExp {
 
     // ===========================================================
     // Variables
@@ -106,7 +111,7 @@ public class PrefixExp extends Exp {
         clone.setLocation(this.getLocation());
         clone.symbol = this.symbol.copy();
         if (this.argument != null) {
-            clone.argument = (Exp) this.argument.clone();
+            clone.argument = (Exp) Exp.clone(this.argument);
         }
 
         clone.setType(this.bType);
@@ -132,6 +137,7 @@ public class PrefixExp extends Exp {
     // -----------------------------------------------------------
 
     /** Returns the value of the location variable. */
+    @Override
     public Location getLocation() {
         return location;
     }
@@ -168,6 +174,11 @@ public class PrefixExp extends Exp {
     // ===========================================================
     // Public Methods
     // ===========================================================
+
+    @Override
+    public int getQuantification() {
+        return VarExp.NONE;
+    }
 
     /** Accepts a ResolveConceptualVisitor. */
     public void accept(ResolveConceptualVisitor v) {
@@ -270,7 +281,7 @@ public class PrefixExp extends Exp {
         PrefixExp retval;
 
         PosSymbol newSymbol = symbol.copy();
-        Exp newArgument = argument.copy();
+        Exp newArgument = Exp.copy(argument);
 
         retval = new PrefixExp(null, newSymbol, newArgument);
         retval.setType(type);
@@ -280,7 +291,7 @@ public class PrefixExp extends Exp {
     public Exp replace(Exp old, Exp replacement) {
         if (!(old instanceof PrefixExp)) {
             if (this.argument != null) {
-                Exp newArgument = argument.replace(old, replacement);
+                Exp newArgument = Exp.replace(argument, old, replacement);
                 if (newArgument != null) {
                     this.setArgument(newArgument);
                 }
@@ -318,5 +329,20 @@ public class PrefixExp extends Exp {
         }
         else
             return this;
+    }
+
+    @Override
+    public String getOperatorAsString() {
+        return this.symbol.getName();
+    }
+
+    @Override
+    public PosSymbol getOperatorAsPosSymbol() {
+        return this.symbol;
+    }
+
+    @Override
+    public PosSymbol getQualifier() {
+        return null;
     }
 }

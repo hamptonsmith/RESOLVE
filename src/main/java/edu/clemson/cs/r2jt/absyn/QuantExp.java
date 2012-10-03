@@ -60,9 +60,15 @@ package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
+import edu.clemson.cs.r2jt.init.Environment;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
+import edu.clemson.cs.r2jt.verification.AssertiveCode;
 
 public class QuantExp extends Exp {
 
@@ -237,7 +243,7 @@ public class QuantExp extends Exp {
                 sb.append(", ");
             }
         }
-        sb.append(" such that ");
+        sb.append(", ");
         if (body != null)
             sb.append(body.toString(0));
         return sb.toString();
@@ -305,31 +311,29 @@ public class QuantExp extends Exp {
         List<MathVarDec> newVars = new List<MathVarDec>();
         Iterator<MathVarDec> i = vars.iterator();
         while (i.hasNext()) {
-            newVars.add((MathVarDec) i.next().clone());
+            newVars.add(i.next().copy());
         }
         clone.setVars(newVars);
         if (where != null)
-            clone.setWhere((Exp) this.getWhere().clone());
+            clone.setWhere(Exp.copy(this.getWhere()));
         if (body != null)
-            clone.setBody((Exp) this.getBody().clone());
+            clone.setBody(Exp.copy(this.getBody()));
         clone.setLocation(this.getLocation());
-        clone.setType(getType());
         return clone;
     }
 
     public Exp replace(Exp old, Exp replacement) {
         if (!(old instanceof QuantExp)) {
             if (where != null) {
-                Exp whr = where.replace(old, replacement);
+                Exp whr = Exp.replace(where, old, replacement);
                 if (whr != null)
                     this.setWhere(whr);
             }
             if (body != null) {
-                Exp bdy = body.replace(old, replacement);
+                Exp bdy = Exp.replace(body, old, replacement);
                 if (bdy != null)
                     this.setBody(bdy);
-                // Not used anywhere below. - YS 
-                //String str = bdy.toString(0, 0);
+                String str = bdy.toString(0, 0);
             }
             if (vars != null && old instanceof VarExp
                     && replacement instanceof VarExp) {
@@ -462,9 +466,9 @@ public class QuantExp extends Exp {
         }
         Exp newWhere = null;
         if (where != null) {
-            newWhere = where.copy();
+            newWhere = Exp.copy(where);
         }
-        Exp newBody = body.copy();
+        Exp newBody = Exp.copy(body);
         Exp retval =
                 new QuantExp(null, newOperator, newVars, newWhere, newBody);
 

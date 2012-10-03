@@ -59,7 +59,9 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Symbol;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
@@ -306,8 +308,8 @@ public class JustificationExp extends Exp {
     }
 
     public Exp copy() {
-        HypDesigExp newHypDesig1 = (HypDesigExp) (hypDesig1.copy());
-        HypDesigExp newHypDesig2 = (HypDesigExp) (hypDesig2.copy());
+        HypDesigExp newHypDesig1 = (HypDesigExp) (Exp.copy(hypDesig1));
+        HypDesigExp newHypDesig2 = (HypDesigExp) (Exp.copy(hypDesig2));
         PosSymbol newRule = null;
         if (rule != null) {
             newRule = rule.copy();

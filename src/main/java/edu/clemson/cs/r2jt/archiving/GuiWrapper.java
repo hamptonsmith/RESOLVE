@@ -83,8 +83,7 @@ public class GuiWrapper {
             created = true;
         }
         catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return created;
     }

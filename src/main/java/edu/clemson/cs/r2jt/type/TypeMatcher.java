@@ -137,9 +137,6 @@ public class TypeMatcher {
         else if (type1 instanceof BooleanType) {
             return booleanTypeMathMatches((BooleanType) type1, type2);
         }
-        else if (type1 instanceof IndirectType) {
-            return true;
-        }
         else {
             return false;
         }

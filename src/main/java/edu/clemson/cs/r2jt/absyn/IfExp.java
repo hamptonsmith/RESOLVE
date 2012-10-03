@@ -58,9 +58,15 @@
 
 package edu.clemson.cs.r2jt.absyn;
 
+import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.PosSymbol;
+import edu.clemson.cs.r2jt.init.Environment;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 
 public class IfExp extends Exp {
@@ -249,11 +255,11 @@ public class IfExp extends Exp {
     public Object clone() {
         IfExp clone = new IfExp();
         if (test != null)
-            clone.setTest((Exp) this.getTest().clone());
+            clone.setTest((Exp) Exp.clone(this.getTest()));
         if (elseclause != null)
-            clone.setElseclause((Exp) this.getElseclause().clone());
+            clone.setElseclause((Exp) Exp.clone(this.getElseclause()));
         if (thenclause != null)
-            clone.setThenclause((Exp) this.getThenclause().clone());
+            clone.setThenclause((Exp) Exp.clone(this.getThenclause()));
         clone.setLocation(this.getLocation());
         clone.setType(getType());
         return clone;
@@ -262,17 +268,17 @@ public class IfExp extends Exp {
     public Exp replace(Exp old, Exp replacement) {
         if (!(old instanceof IfExp)) {
             if (test != null) {
-                Exp testcl = test.replace(old, replacement);
+                Exp testcl = Exp.replace(test, old, replacement);
                 if (testcl != null)
                     this.setTest(testcl);
             }
             if (thenclause != null) {
-                Exp then = thenclause.replace(old, replacement);
+                Exp then = Exp.replace(thenclause, old, replacement);
                 if (then != null)
                     this.setThenclause(then);
             }
             if (elseclause != null) {
-                Exp elsecl = elseclause.replace(old, replacement);
+                Exp elsecl = Exp.replace(elseclause, old, replacement);
 
                 if (elsecl != null)
                     this.setElseclause(elsecl);
@@ -345,12 +351,12 @@ public class IfExp extends Exp {
     }
 
     public Exp copy() {
-        Exp newTest = test.copy();
-        Exp newThenclause = thenclause.copy();
+        Exp newTest = Exp.copy(test);
+        Exp newThenclause = Exp.copy(thenclause);
 
         Exp newElseclause = null;
         if (elseclause != null) {
-            newElseclause = elseclause.copy();
+            newElseclause = Exp.copy(elseclause);
         }
 
         Exp result = new IfExp(null, newTest, newThenclause, newElseclause);

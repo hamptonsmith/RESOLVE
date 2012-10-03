@@ -58,10 +58,15 @@
 
 package edu.clemson.cs.r2jt.absyn;
 
+import edu.clemson.cs.r2jt.collections.Iterator;
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Mode;
+import edu.clemson.cs.r2jt.data.Symbol;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 
 public class LambdaExp extends Exp {
@@ -238,8 +243,8 @@ public class LambdaExp extends Exp {
 
     public Exp replace(Exp old, Exp replace) {
         if (!(old instanceof LambdaExp)) {
-            LambdaExp result = (LambdaExp) this.copy();
-            result.body = result.body.replace(old, replace);
+            LambdaExp result = (LambdaExp) Exp.copy(this);
+            result.body = Exp.replace(result.body, old, replace);
             if (name != null) {
                 if (old instanceof VarExp && replace instanceof VarExp) {
                     if (((VarExp) old).getName().toString().equals(
@@ -275,7 +280,7 @@ public class LambdaExp extends Exp {
 
     public Exp copy() {
         PosSymbol newName = name.copy();
-        Exp newBody = body.copy();
+        Exp newBody = Exp.copy(body);
         Exp result = new LambdaExp(null, newName, ty, newBody);
         result.setType(type);
 
@@ -284,7 +289,7 @@ public class LambdaExp extends Exp {
 
     public Object clone() {
         PosSymbol newName = name.copy();
-        Exp newBody = (Exp) body.clone();
+        Exp newBody = (Exp) Exp.clone(body);
         Exp result = new LambdaExp(null, newName, ty, newBody);
         result.setType(type);
 

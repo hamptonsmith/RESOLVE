@@ -87,8 +87,8 @@ public class VerificationStatement implements Cloneable {
             if ((type == ASSUME) || (type == CONFIRM)) {
                 if (assertion instanceof Exp)
                     clone =
-                            new VerificationStatement(type, ((Exp) assertion)
-                                    .clone());
+                            new VerificationStatement(type, Exp
+                                    .clone(((Exp) assertion)));
                 return clone;
             }
             else if (type == CODE) {
@@ -114,7 +114,7 @@ public class VerificationStatement implements Cloneable {
                     clone =
                             new VerificationStatement(type,
                                     ((List<?>) assertion).clone());
-                    return clone();
+                    return this.clone();
                 }
                 else
                     return super.clone();

@@ -59,9 +59,12 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
+import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
+import edu.clemson.cs.r2jt.data.Symbol;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
+import edu.clemson.cs.r2jt.type.TypeMatcher;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 
 public class GoalExp extends LineNumberedExp {
@@ -194,7 +197,7 @@ public class GoalExp extends LineNumberedExp {
         PosSymbol newLineNum = null;
         if (myLineNumber != null)
             newLineNum = myLineNumber.copy();
-        Exp newExp = exp.copy();
+        Exp newExp = Exp.copy(exp);
         return new GoalExp(null, newLineNum, newExp);
     }
 

@@ -15,18 +15,27 @@ import edu.clemson.cs.r2jt.absyn.UsesItem;
  */
 public class ModuleIdentifier implements Comparable<ModuleIdentifier> {
 
+    public static final ModuleIdentifier GLOBAL = new ModuleIdentifier();
+
     private final String myName;
+    private final boolean myGlobalFlag;
+
+    private ModuleIdentifier() {
+        myName = "GLOBAL";
+        myGlobalFlag = true;
+    }
 
     public ModuleIdentifier(ModuleDec m) {
-        myName = m.getName().getName();
+        this(m.getName().getName());
     }
 
     public ModuleIdentifier(UsesItem i) {
-        myName = i.getName().getName();
+        this(i.getName().getName());
     }
 
-    ModuleIdentifier(String s) {
+    public ModuleIdentifier(String s) {
         myName = s;
+        myGlobalFlag = false;
     }
 
     public boolean equals(Object o) {
@@ -50,5 +59,9 @@ public class ModuleIdentifier implements Comparable<ModuleIdentifier> {
 
     public String toString() {
         return myName;
+    }
+
+    public String fullyQualifiedRepresentation(String symbol) {
+        return myName + "." + symbol;
     }
 }
