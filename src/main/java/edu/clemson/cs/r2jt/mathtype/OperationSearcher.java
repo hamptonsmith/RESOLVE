@@ -38,7 +38,7 @@ public class OperationSearcher implements TableSearcher<OperationEntry> {
             }
         }
 
-        return true;
+        return false;
     }
 
     private boolean argumentsMatch(

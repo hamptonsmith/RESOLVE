@@ -15,8 +15,6 @@ import edu.clemson.cs.r2jt.utilities.SourceErrorException;
  * 		<li>Create subclass.</li>
  * 		<li>Add "toXXX()" method in this parent class.</li>
  * 		<li>Override it in subclass.</li>
- * 		<li>Add "searchXXX()" method in <code>SymbolTableSearch</code>, default
- * 			to returning <code>false</code>.</li>
  * </ul>
  */
 public abstract class SymbolTableEntry {
@@ -114,6 +112,11 @@ public abstract class SymbolTableEntry {
 
     public OperationEntry toOperationEntry(Location l) {
         throw new SourceErrorException("Expecting an operation.  Found "
+                + getEntryTypeDescription(), l);
+    }
+    
+    public ProcedureEntry toProcedureEntry(Location l) {
+        throw new SourceErrorException("Expecting a procedure.  Found "
                 + getEntryTypeDescription(), l);
     }
 

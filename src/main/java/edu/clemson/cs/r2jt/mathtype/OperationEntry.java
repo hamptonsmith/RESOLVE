@@ -1,15 +1,14 @@
 package edu.clemson.cs.r2jt.mathtype;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import edu.clemson.cs.r2jt.absyn.ResolveConceptualElement;
 import edu.clemson.cs.r2jt.data.Location;
 import edu.clemson.cs.r2jt.proving.immutableadts.ArrayBackedImmutableList;
 import edu.clemson.cs.r2jt.proving.immutableadts.ImmutableList;
 import edu.clemson.cs.r2jt.proving.immutableadts.LazilyMappedImmutableList;
 import edu.clemson.cs.r2jt.utilities.Mapping;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class OperationEntry extends SymbolTableEntry {
 
@@ -54,7 +53,7 @@ public class OperationEntry extends SymbolTableEntry {
     }
 
     @Override
-    public SymbolTableEntry instantiateGenerics(
+    public OperationEntry instantiateGenerics(
             Map<String, PTType> genericInstantiations,
             FacilityEntry instantiatingFacility) {
 

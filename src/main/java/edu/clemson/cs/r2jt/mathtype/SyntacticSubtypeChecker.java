@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import edu.clemson.cs.r2jt.typereasoning.TypeGraph;
+import java.util.NoSuchElementException;
 
 /**
  * <p>A <em>syntactic subtype</em> refers to a type that can be demonstrated
@@ -129,13 +130,46 @@ public class SyntacticSubtypeChecker extends SymmetricBoundVariableVisitor {
 
     @Override
     public boolean beginMTNamed(MTNamed t1, MTNamed t2) {
-        MTType t1DeclaredType = getInnermostBinding1(t1.name);
-        MTType t2DeclaredType = getInnermostBinding2(t2.name);
+        
+        if (!t1.name.equals(t2.name)) {
+            
+            if (getInnermostBinding2(((MTNamed) t2).name).equals(
+                        myTypeGraph.MTYPE)) {
+                bind(((MTNamed) t2).name, t1);
+            }
+            else {           
+                MTType t1DeclaredType = t1;
+                MTType t2DeclaredType = t2;
+                try {
+                    t1DeclaredType = getInnermostBinding1(t1.name);
+                }
+                catch (NoSuchElementException nsee) {
 
-        //This is fine if the declared type of t1 is a syntactic subtype of the
-        //declared type of t2
-        visit(t1DeclaredType, t2DeclaredType);
+                }
 
+                try {
+                    t2DeclaredType = getInnermostBinding2(t2.name);
+                }
+                catch (NoSuchElementException nsee) {
+
+                }
+
+                if (t1DeclaredType == t1 && t2DeclaredType == t2) {
+                    //We have no information on these named types, but they don't
+                    //share a name, so...
+                    throw new IllegalArgumentException(
+                            new TypeMismatchException(t1, t2));
+                }
+
+                if (!haveAxiomaticSubtypeRelationship(t1DeclaredType, 
+                        t2DeclaredType)) {
+                    //This is fine if the declared type of t1 is a syntactic subtype
+                    //of the declared type of t2
+                    visit(t1DeclaredType, t2DeclaredType);
+                }
+            }
+        }
+        
         return true; //Keep searching siblings
     }
 
@@ -148,6 +182,7 @@ public class SyntacticSubtypeChecker extends SymmetricBoundVariableVisitor {
         myBindings.put(name, type);
     }
 
+    @Override
     public boolean beginMTSetRestriction(MTSetRestriction t1,
             MTSetRestriction t2) {
 
@@ -169,11 +204,11 @@ public class SyntacticSubtypeChecker extends SymmetricBoundVariableVisitor {
 
     @Override
     public boolean mismatch(MTType t1, MTType t2) {
+        
+        //Note it's possible that t1 and t2 could both be MTBigUnion, even
+        //though we're in mismatch() because they could have a different number 
+        //of quantified subtypes.
         if (t2 instanceof MTBigUnion && !(t1 instanceof MTBigUnion)) {
-            //Note it's possible that t1 and t2 could both be MTBigUnion, even
-            //though we're in mismatch() because they could have a different
-            //number of quantified subtypes.
-
             //This may be ok, since we can wrap any expression in a trivial
             //big union
             MTBigUnion t2AsMTBigUnion = (MTBigUnion) t2;

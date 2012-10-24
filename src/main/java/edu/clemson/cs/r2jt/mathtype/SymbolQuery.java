@@ -6,9 +6,6 @@ import java.util.List;
  * <p>A <code>SymbolQuery</code> defines a strategy for returning a list of
  * {@link SymbolTableEntry SymbolTableEntry}s that meet a certain set of 
  * criteria starting from some <em>source scope</em>.
- * 
- * <p>This class is intended to subsume and replace 
- * {@link SymbolTableSearch SymbolTableSearch}.</p>
  */
 public interface SymbolQuery<E extends SymbolTableEntry> {
 
