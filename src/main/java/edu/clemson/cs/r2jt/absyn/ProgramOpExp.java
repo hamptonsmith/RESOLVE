@@ -98,9 +98,9 @@ public class ProgramOpExp extends ProgramExp {
     public static final int NOT = 17;
     public static final int UNARY_MINUS = 18;
 
-    private static final java.util.Map<Integer, PrimitiveTypeName> TYPES = 
+    private static final java.util.Map<Integer, PrimitiveTypeName> TYPES =
             new HashMap<Integer, PrimitiveTypeName>();
-    
+
     static {
         TYPES.put(AND, PrimitiveTypeName.BOOLEAN);
         TYPES.put(OR, PrimitiveTypeName.BOOLEAN);
@@ -110,7 +110,7 @@ public class ProgramOpExp extends ProgramExp {
         TYPES.put(LT_EQL, PrimitiveTypeName.BOOLEAN);
         TYPES.put(GT, PrimitiveTypeName.BOOLEAN);
         TYPES.put(GT_EQL, PrimitiveTypeName.BOOLEAN);
-        
+
         TYPES.put(PLUS, PrimitiveTypeName.INTEGER);
         TYPES.put(MINUS, PrimitiveTypeName.INTEGER);
         TYPES.put(MULTIPLY, PrimitiveTypeName.INTEGER);
@@ -119,12 +119,12 @@ public class ProgramOpExp extends ProgramExp {
         TYPES.put(MOD, PrimitiveTypeName.INTEGER);
         TYPES.put(DIV, PrimitiveTypeName.INTEGER);
         TYPES.put(EXP, PrimitiveTypeName.INTEGER);
-        
+
         TYPES.put(NOT, PrimitiveTypeName.BOOLEAN);
-        
+
         TYPES.put(UNARY_MINUS, PrimitiveTypeName.INTEGER);
     }
-    
+
     // ===========================================================
     // Variables
     // ===========================================================
@@ -425,21 +425,21 @@ public class ProgramOpExp extends ProgramExp {
             break;
         }
     }
-    
+
     public PTType getProgramType(TypeGraph g) {
         PTType result;
-        
+
         switch (TYPES.get(operator)) {
-            case INTEGER:
-                result = PTInteger.getInstance(g);
-                break;
-            case BOOLEAN:
-                result = PTBoolean.getInstance(g);
-                break;
-            default:
-                throw new RuntimeException();
+        case INTEGER:
+            result = PTInteger.getInstance(g);
+            break;
+        case BOOLEAN:
+            result = PTBoolean.getInstance(g);
+            break;
+        default:
+            throw new RuntimeException();
         }
-        
+
         return result;
     }
 }

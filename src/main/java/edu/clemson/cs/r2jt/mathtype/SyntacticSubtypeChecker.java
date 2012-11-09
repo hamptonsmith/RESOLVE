@@ -130,14 +130,14 @@ public class SyntacticSubtypeChecker extends SymmetricBoundVariableVisitor {
 
     @Override
     public boolean beginMTNamed(MTNamed t1, MTNamed t2) {
-        
+
         if (!t1.name.equals(t2.name)) {
-            
+
             if (getInnermostBinding2(((MTNamed) t2).name).equals(
-                        myTypeGraph.MTYPE)) {
+                    myTypeGraph.MTYPE)) {
                 bind(((MTNamed) t2).name, t1);
             }
-            else {           
+            else {
                 MTType t1DeclaredType = t1;
                 MTType t2DeclaredType = t2;
                 try {
@@ -161,7 +161,7 @@ public class SyntacticSubtypeChecker extends SymmetricBoundVariableVisitor {
                             new TypeMismatchException(t1, t2));
                 }
 
-                if (!haveAxiomaticSubtypeRelationship(t1DeclaredType, 
+                if (!haveAxiomaticSubtypeRelationship(t1DeclaredType,
                         t2DeclaredType)) {
                     //This is fine if the declared type of t1 is a syntactic subtype
                     //of the declared type of t2
@@ -169,7 +169,7 @@ public class SyntacticSubtypeChecker extends SymmetricBoundVariableVisitor {
                 }
             }
         }
-        
+
         return true; //Keep searching siblings
     }
 
@@ -204,7 +204,7 @@ public class SyntacticSubtypeChecker extends SymmetricBoundVariableVisitor {
 
     @Override
     public boolean mismatch(MTType t1, MTType t2) {
-        
+
         //Note it's possible that t1 and t2 could both be MTBigUnion, even
         //though we're in mismatch() because they could have a different number 
         //of quantified subtypes.

@@ -8,6 +8,7 @@ import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.data.Symbol;
 import edu.clemson.cs.r2jt.mathtype.*;
 import edu.clemson.cs.r2jt.population.MathPopulator;
+import edu.clemson.cs.r2jt.utilities.HardCoded;
 import edu.clemson.cs.r2jt.utilities.SourceErrorException;
 
 import java.util.*;
@@ -67,6 +68,11 @@ public class TypeGraph {
 
     public TypeGraph() {
         this.myTypeNodes = new HashMap<MTType, TypeNode>();
+
+        //IDEs will rightfully warn that passing "this" in the constructor is
+        //dangerous.  We know what we're doing though, so we suppress the error
+        //with this strange-looking code.
+        TypeGraph thisTG = this;
     }
 
     private Map<MTType, Map<String, MTType>> getSyntacticSubtypesWithRelationships(
@@ -100,9 +106,19 @@ public class TypeGraph {
      *     <code>subtype</code> must necessarily be in <code>supertype</code>.
      */
     public boolean isSubtype(MTType subtype, MTType supertype) {
-        boolean result =
-                subtype.equals(supertype)
-                        || subtype.isSyntacticSubtypeOf(supertype);
+        boolean result;
+
+        try {
+            result =
+                    subtype.equals(supertype)
+                            || subtype.isSyntacticSubtypeOf(supertype);
+        }
+        catch (NoSuchElementException nsee) {
+            //Syntactic subtype checker freaks out (rightly) if there are
+            //free variables in the expression, but the next check will deal
+            //correctly with them.
+            result = false;
+        }
 
         if (!result) {
             result =
@@ -214,17 +230,24 @@ public class TypeGraph {
             result = getTrueVarExp();
         }
         else if (expected instanceof MTPowertypeApplication) {
-            //If "expected" happens to be Power(t) for some t, we can "demote" 
-            //value to an INSTANCE of itself, and expected to just t
-            MTPowertypeApplication expectedAsPowertypeApplication =
-                    (MTPowertypeApplication) expected;
-
-            DummyExp memberOfValue = new DummyExp(value);
-
-            if (isKnownToBeIn(memberOfValue, expectedAsPowertypeApplication
-                    .getArgument(0))) {
-
+            if (value.equals(EMPTY_SET)) {
+                //The empty set is in all powertypes
                 result = getTrueVarExp();
+            }
+            else {
+                //If "expected" happens to be Power(t) for some t, we can 
+                //"demote" value to an INSTANCE of itself (provided it is not
+                //the empty set), and expected to just t
+                MTPowertypeApplication expectedAsPowertypeApplication =
+                        (MTPowertypeApplication) expected;
+
+                DummyExp memberOfValue = new DummyExp(value);
+
+                if (isKnownToBeIn(memberOfValue, expectedAsPowertypeApplication
+                        .getArgument(0))) {
+
+                    result = getTrueVarExp();
+                }
             }
         }
 
@@ -548,6 +571,11 @@ public class TypeGraph {
             Exp bindingCondition, Scope environment) {
 
         //Sanitize and sanity check our inputs somewhat
+        if (destination == null) {
+            throw new IllegalArgumentException("Destination type may not be "
+                    + "null.");
+        }
+
         MTType source = bindingExpression.getMathType();
         if (source == null) {
             throw new IllegalArgumentException("bindingExpression has no "
@@ -875,7 +903,7 @@ public class TypeGraph {
 
     @Override
     public String toString() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
 
         Set<MTType> keys = myTypeNodes.keySet();
         Iterator<MTType> iter = keys.iterator();

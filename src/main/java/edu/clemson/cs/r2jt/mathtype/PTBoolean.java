@@ -27,19 +27,21 @@ public class PTBoolean extends PTType {
 
         return result;
     }
-    
+
     private PTBoolean(TypeGraph g) {
         super(g);
     }
-    
+
     @Override
     public MTType toMath() {
         return getTypeGraph().BOOLEAN;
     }
 
     @Override
-    public PTType instantiateGenerics(Map<String, PTType> genericInstantiations, FacilityEntry instantiatingFacility) {
+    public PTType instantiateGenerics(
+            Map<String, PTType> genericInstantiations,
+            FacilityEntry instantiatingFacility) {
         return this;
     }
-    
+
 }

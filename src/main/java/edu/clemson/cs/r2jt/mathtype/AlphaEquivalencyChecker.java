@@ -11,7 +11,7 @@ public class AlphaEquivalencyChecker extends SymmetricBoundVariableVisitor {
 
         if (!t1.name.equals(t2.name)) {
             System.out.println(t1.name + ", " + t2.name);
-            
+
             MTType t1Value = null;
             MTType t2Value = null;
             try {
@@ -21,8 +21,8 @@ public class AlphaEquivalencyChecker extends SymmetricBoundVariableVisitor {
             catch (NoSuchElementException nsee) {
                 //We have no information about the named types--but we know they
                 //aren't named the same, so...
-                throw new IllegalArgumentException(
-                        new TypeMismatchException(t1, t2));
+                throw new IllegalArgumentException(new TypeMismatchException(
+                        t1, t2));
             }
 
             SymmetricVisitor alphaEq = new AlphaEquivalencyChecker();

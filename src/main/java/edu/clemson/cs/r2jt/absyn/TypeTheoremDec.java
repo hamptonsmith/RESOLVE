@@ -10,7 +10,6 @@ public class TypeTheoremDec extends Dec {
     private PosSymbol myName;
     private List<MathVarDec> myUniversalVars = new List<MathVarDec>();
     private Exp myAssertion;
-    private ArbitraryExpTy myAssertedType;
 
     public void addVarDecGroup(List<MathVarDec> vars) {
         Iterator<MathVarDec> iter = vars.iterator();
@@ -41,10 +40,6 @@ public class TypeTheoremDec extends Dec {
         return myAssertion;
     }
 
-    public void setAssertedType(ArbitraryExpTy assertedType) {
-        this.myAssertedType = assertedType;
-    }
-
     @Override
     public void accept(ResolveConceptualVisitor v) {
     // don't need this with the new walker
@@ -66,10 +61,6 @@ public class TypeTheoremDec extends Dec {
 
     public Exp getAssertion() {
         return myAssertion;
-    }
-
-    public ArbitraryExpTy getAssertedType() {
-        return myAssertedType;
     }
 
     public boolean hasBindingCondition() {

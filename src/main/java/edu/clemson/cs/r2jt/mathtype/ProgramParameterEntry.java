@@ -12,72 +12,80 @@ public class ProgramParameterEntry extends SymbolTableEntry {
 
     public static enum ParameterMode {
         ALTERS {
+
             @Override
             public ParameterMode[] getValidImplementationModes() {
-                return new ParameterMode[] {ALTERS, CLEARS};
+                return new ParameterMode[] { ALTERS, CLEARS };
             }
-        }, 
+        },
         UPDATES {
+
             @Override
             public ParameterMode[] getValidImplementationModes() {
-                return new ParameterMode[] {UPDATES, CLEARS, RESTORES, 
-                    PRESERVES};
+                return new ParameterMode[] { UPDATES, CLEARS, RESTORES,
+                        PRESERVES };
             }
-        }, 
+        },
         REPLACES {
+
             @Override
             public ParameterMode[] getValidImplementationModes() {
-                return new ParameterMode[] {REPLACES, CLEARS};
+                return new ParameterMode[] { REPLACES, CLEARS };
             }
-        }, 
-        CLEARS  {
+        },
+        CLEARS {
+
             @Override
             public ParameterMode[] getValidImplementationModes() {
-                return new ParameterMode[] {CLEARS};
+                return new ParameterMode[] { CLEARS };
             }
-        }, 
+        },
         RESTORES {
+
             @Override
             public ParameterMode[] getValidImplementationModes() {
-                return new ParameterMode[] {RESTORES, PRESERVES};
+                return new ParameterMode[] { RESTORES, PRESERVES };
             }
-        }, 
+        },
         PRESERVES {
+
             @Override
             public ParameterMode[] getValidImplementationModes() {
-                return new ParameterMode[] {PRESERVES};
+                return new ParameterMode[] { PRESERVES };
             }
-        }, 
+        },
         EVALUATES {
+
             @Override
             public ParameterMode[] getValidImplementationModes() {
-                return new ParameterMode[] {EVALUATES};
+                return new ParameterMode[] { EVALUATES };
             }
-        }, 
+        },
         TYPE {
+
             @Override
             public ParameterMode[] getValidImplementationModes() {
-                return new ParameterMode[] {TYPE};
+                return new ParameterMode[] { TYPE };
             }
         };
-        
+
         public boolean canBeImplementedWith(ParameterMode o) {
             return contains(getValidImplementationModes(), o);
         }
-        
+
         private static boolean contains(Object[] os, Object o) {
             boolean result = false;
-            
+
             int i = 0;
             int osLength = os.length;
             while (!result && i < osLength) {
                 result = os[i].equals(o);
                 i++;
             }
-            
+
             return result;
         }
-        
+
         public abstract ParameterMode[] getValidImplementationModes();
     }
 
@@ -122,10 +130,10 @@ public class ProgramParameterEntry extends SymbolTableEntry {
                 new MathSymbolEntry(type.getTypeGraph(), name,
                         Quantification.NONE, definingElement, type.toMath(),
                         typeValue, sourceModule);
-        
-        myProgramVariableAlterEgo = new ProgramVariableEntry(getName(), 
-                getDefiningElement(), getSourceModuleIdentifier(), 
-                myDeclaredType);
+
+        myProgramVariableAlterEgo =
+                new ProgramVariableEntry(getName(), getDefiningElement(),
+                        getSourceModuleIdentifier(), myDeclaredType);
     }
 
     @Override
@@ -137,28 +145,29 @@ public class ProgramParameterEntry extends SymbolTableEntry {
     public MathSymbolEntry toMathSymbolEntry(Location l) {
         return myMathSymbolAlterEgo;
     }
-    
+
     @Override
     public ProgramVariableEntry toProgramVariableEntry(Location l) {
         return myProgramVariableAlterEgo;
     }
-    
+
     @Override
     public ProgramTypeEntry toProgramTypeEntry(Location l) {
-        
+
         ProgramTypeEntry result;
-        
+
         if (!myPassingMode.equals(ParameterMode.TYPE)) {
             //This will throw an appropriate error
             result = super.toProgramTypeEntry(l);
         }
         else {
-            result = new ProgramTypeEntry(myTypeGraph, getName(), 
-                    getDefiningElement(), getSourceModuleIdentifier(), 
-                    new MTNamed(myTypeGraph, getName()), 
-                    new PTGeneric(myTypeGraph, getName()));
+            result =
+                    new ProgramTypeEntry(myTypeGraph, getName(),
+                            getDefiningElement(), getSourceModuleIdentifier(),
+                            new MTNamed(myTypeGraph, getName()), new PTGeneric(
+                                    myTypeGraph, getName()));
         }
-        
+
         return result;
     }
 
@@ -180,9 +189,9 @@ public class ProgramParameterEntry extends SymbolTableEntry {
             Map<String, PTType> genericInstantiations,
             FacilityEntry instantiatingFacility) {
 
-        return new ProgramParameterEntry(myTypeGraph, getName(), 
-                getDefiningElement(), getSourceModuleIdentifier(), 
+        return new ProgramParameterEntry(myTypeGraph, getName(),
+                getDefiningElement(), getSourceModuleIdentifier(),
                 myDeclaredType.instantiateGenerics(genericInstantiations,
-                instantiatingFacility), myPassingMode);
+                        instantiatingFacility), myPassingMode);
     }
 }

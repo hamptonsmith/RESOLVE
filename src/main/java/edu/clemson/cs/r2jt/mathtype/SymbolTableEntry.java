@@ -114,7 +114,7 @@ public abstract class SymbolTableEntry {
         throw new SourceErrorException("Expecting an operation.  Found "
                 + getEntryTypeDescription(), l);
     }
-    
+
     public ProcedureEntry toProcedureEntry(Location l) {
         throw new SourceErrorException("Expecting a procedure.  Found "
                 + getEntryTypeDescription(), l);

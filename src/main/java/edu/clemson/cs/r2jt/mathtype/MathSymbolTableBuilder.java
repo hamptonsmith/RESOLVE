@@ -54,6 +54,13 @@ public class MathSymbolTableBuilder extends ScopeRepository {
         HardCoded.addBuiltInSymbols(myTypeGraph, globalScope);
 
         myLexicalScopeStack.push(globalScope);
+
+        //Some IDEs (rightly) complain about leaking a "this" pointer inside the
+        //constructor, but we know what we're doing--this is the last thing in
+        //the constructor and thus the object is fully initialized.  The weird 
+        //intermediate variable suppresses the warning
+        MathSymbolTableBuilder thisObject = this;
+        HardCoded.addBuiltInRelationships(myTypeGraph, thisObject);
     }
 
     @Override

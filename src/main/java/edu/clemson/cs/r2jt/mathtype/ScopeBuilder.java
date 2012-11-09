@@ -102,20 +102,20 @@ public class ScopeBuilder extends SyntacticScope {
 
         return entry;
     }
-    
+
     public ProcedureEntry addProcedure(String name,
             ResolveConceptualElement definingElement,
-            OperationEntry correspondingOperation) 
+            OperationEntry correspondingOperation)
             throws DuplicateSymbolException {
-        
+
         sanityCheckBindArguments(name, definingElement, "");
-        
+
         ProcedureEntry entry =
                 new ProcedureEntry(name, definingElement, myRootModule,
-                    correspondingOperation);
-        
+                        correspondingOperation);
+
         myBindings.put(name, entry);
-        
+
         return entry;
     }
 
@@ -164,7 +164,7 @@ public class ScopeBuilder extends SyntacticScope {
         sanityCheckBindArguments(name, definingElement, type);
 
         ProgramParameterEntry entry =
-                new ProgramParameterEntry(myTypeGraph, name, definingElement, 
+                new ProgramParameterEntry(myTypeGraph, name, definingElement,
                         myRootModule, type, mode);
 
         myBindings.put(name, entry);

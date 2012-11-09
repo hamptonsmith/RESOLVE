@@ -64,6 +64,8 @@ public class ResolveConceptualVisitor {
 
     public void visitArbitraryExpTy(ArbitraryExpTy data) {}
 
+    public void visitImplicitTypeParameterExp(ImplicitTypeParameterExp data) {}
+
     public void visitAssumeStmt(AssumeStmt data) {}
 
     public void visitAuxCodeStmt(AuxCodeStmt data) {}

@@ -7,19 +7,19 @@ import java.util.Map;
 public class ProcedureEntry extends SymbolTableEntry {
 
     private final OperationEntry myCorrespondingOperation;
-    
-    public ProcedureEntry(String name, ResolveConceptualElement definingElement,
-            ModuleIdentifier sourceModule, 
-            OperationEntry correspondingOperation) {
+
+    public ProcedureEntry(String name,
+            ResolveConceptualElement definingElement,
+            ModuleIdentifier sourceModule, OperationEntry correspondingOperation) {
         super(name, definingElement, sourceModule);
-        
+
         myCorrespondingOperation = correspondingOperation;
     }
-    
+
     public OperationEntry getCorrespondingOperation() {
         return myCorrespondingOperation;
     }
-    
+
     @Override
     public String getEntryTypeDescription() {
         return "a procedure";
@@ -27,15 +27,15 @@ public class ProcedureEntry extends SymbolTableEntry {
 
     @Override
     public ProcedureEntry instantiateGenerics(
-            Map<String, PTType> genericInstantiations, 
+            Map<String, PTType> genericInstantiations,
             FacilityEntry instantiatingFacility) {
-        
-        return new ProcedureEntry(getName(), getDefiningElement(), 
-                getSourceModuleIdentifier(),
-                myCorrespondingOperation.instantiateGenerics(
-                    genericInstantiations, instantiatingFacility));
+
+        return new ProcedureEntry(getName(), getDefiningElement(),
+                getSourceModuleIdentifier(), myCorrespondingOperation
+                        .instantiateGenerics(genericInstantiations,
+                                instantiatingFacility));
     }
-    
+
     @Override
     public ProcedureEntry toProcedureEntry(Location l) {
         return this;

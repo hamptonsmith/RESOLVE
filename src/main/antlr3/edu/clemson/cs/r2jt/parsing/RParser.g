@@ -739,7 +739,7 @@ convention_clause
 type_theorem_declaration
     :   TYPE^ THEOREM! (math_theorem_ident)? COLON
         (FOR ALL! math_variable_declaration_group COMMA!)+
-        implies_expression COLON! math_type_expression SEMICOLON!
+        implies_expression SEMICOLON!
     ;
     
 
@@ -1542,10 +1542,7 @@ variable_id_list
 
 
 math_type_expression
-    :   //function_type_expression? -> ^(TYPEX function_type_expression?)
-    //|   BOOLEAN
-    infix_expression
-    ;
+    :   infix_expression;
 
 /*    
 function_type_expression
@@ -1718,17 +1715,16 @@ between_expression
     ;
 
 infix_expression returns [ColsAST ast = null]
-    :   //(math_variable_declarations AND) =>
-        //(math_variable_declarations AND math_expression)
-           // -> ^(LOCALVAREXP math_variable_declarations math_expression) |
-        (function_type_expression
+    :   (type_assertion_expression
         (   (   RANGE^
             |   FREE_OPERATOR^
             )
-            function_type_expression
+            type_assertion_expression
         )?)
-        | BOOLEAN
-    ;
+    | BOOLEAN;
+
+type_assertion_expression
+    : function_type_expression (COLON infix_expression)?;
     
 function_type_expression
     :  adding_expression (FUNCARROW^ adding_expression)*;

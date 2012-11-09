@@ -1,14 +1,71 @@
 package edu.clemson.cs.r2jt.utilities;
 
+import edu.clemson.cs.r2jt.absyn.FacilityModuleDec;
+import edu.clemson.cs.r2jt.absyn.ModuleDec;
 import edu.clemson.cs.r2jt.absyn.VarExp;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.data.Symbol;
 import edu.clemson.cs.r2jt.mathtype.DuplicateSymbolException;
 import edu.clemson.cs.r2jt.mathtype.MTFunction;
+import edu.clemson.cs.r2jt.mathtype.MTNamed;
+import edu.clemson.cs.r2jt.mathtype.MTPowertypeApplication;
+import edu.clemson.cs.r2jt.mathtype.MathSymbolTableBuilder;
 import edu.clemson.cs.r2jt.mathtype.ScopeBuilder;
+import edu.clemson.cs.r2jt.mathtype.SymbolTableEntry.Quantification;
 import edu.clemson.cs.r2jt.typereasoning.TypeGraph;
 
 public class HardCoded {
+
+    public static void addBuiltInRelationships(TypeGraph g,
+            MathSymbolTableBuilder b) {
+        try {
+            //This is just a hard-coded version of this theoretical type theorem
+            //that can't actually appear in a theory because it won't type-check
+            //(it requires itself to typecheck):
+
+            //Type Theorem Function_Subtypes:
+            //   For all D1, R1 : MType,
+            //   For all D2 : Powerset(D1),
+            //   For all R2 : Powerset(R1),
+            //   For all f : D2 -> R2,
+            //       f : D1 -> R1;
+
+            PosSymbol ntv = new PosSymbol(null, Symbol.symbol("native"));
+            ModuleDec module =
+                    new FacilityModuleDec(ntv, null, null, null, null);
+
+            VarExp v = new VarExp();
+            v.setName(ntv);
+            ScopeBuilder s = b.startModuleScope(module);
+
+            s.addBinding("D1", Quantification.UNIVERSAL, v, g.MTYPE);
+            s.addBinding("R1", Quantification.UNIVERSAL, v, g.MTYPE);
+
+            s.addBinding("D2", Quantification.UNIVERSAL, v,
+                    new MTPowertypeApplication(g, new MTNamed(g, "D1")));
+            s.addBinding("R2", Quantification.UNIVERSAL, v,
+                    new MTPowertypeApplication(g, new MTNamed(g, "R1")));
+
+            s.addBinding("f", Quantification.UNIVERSAL, v, new MTFunction(g,
+                    new MTNamed(g, "R2"), new MTNamed(g, "D2")));
+
+            PosSymbol fSym = new PosSymbol(null, Symbol.symbol("f"));
+            VarExp f = new VarExp();
+            f.setName(fSym);
+            f.setMathType(new MTFunction(g, new MTNamed(g, "R2"), new MTNamed(
+                    g, "D2")));
+            f.setQuantification(VarExp.FORALL);
+
+            g.addRelationship(f, new MTFunction(g, new MTNamed(g, "R1"),
+                    new MTNamed(g, "D1")), null, s);
+
+            b.endScope();
+        }
+        catch (DuplicateSymbolException dse) {
+            //Not possible--we're the first ones to add anything
+            throw new RuntimeException(dse);
+        }
+    }
 
     /**
      * <p>This method establishes all built-in symbols of the symbol table.</p>

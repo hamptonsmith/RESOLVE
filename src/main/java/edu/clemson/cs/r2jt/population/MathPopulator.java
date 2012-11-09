@@ -79,7 +79,7 @@ public class MathPopulator extends TreeWalkerVisitor {
      * <code>myCurrentParameters != null</code>.</p>
      */
     private OperationEntry myCorrespondingOperation;
-    
+
     /**
      * <p>While we walk the children of an operation, FacilityOperation, or
      * procedure, this list will contain all formal parameters encountered so 
@@ -192,42 +192,44 @@ public class MathPopulator extends TreeWalkerVisitor {
     public void preFacilityOperationDec(FacilityOperationDec dec) {
         myBuilder.startScope(dec);
     }
-    
+
     @Override
     public void preProcedureDec(ProcedureDec dec) {
-        
+
         try {
             //Figure out what Operation we correspond to (we don't use 
             //OperationQuery because we want to check parameter types 
             //separately in postProcedureDec)
-            myCorrespondingOperation = 
+            myCorrespondingOperation =
                     myBuilder.getInnermostActiveScope().queryForOne(
-                        new NameAndEntryTypeQuery(null, dec.getName(), 
-                            OperationEntry.class, ImportStrategy.IMPORT_NAMED, 
-                            FacilityStrategy.FACILITY_IGNORE, false))
-                        .toOperationEntry(dec.getLocation());
-            
+                            new NameAndEntryTypeQuery(null, dec.getName(),
+                                    OperationEntry.class,
+                                    ImportStrategy.IMPORT_NAMED,
+                                    FacilityStrategy.FACILITY_IGNORE, false))
+                            .toOperationEntry(dec.getLocation());
+
             myBuilder.startScope(dec);
-        
+
             myCurrentParameters = new LinkedList<ProgramParameterEntry>();
         }
         catch (NoSuchSymbolException nsse) {
-            throw new SourceErrorException("Procedure " + 
-                    dec.getName().getName() + " does not implement any known " +
-                    "Operation.", dec.getName().getLocation());
+            throw new SourceErrorException("Procedure "
+                    + dec.getName().getName()
+                    + " does not implement any known " + "Operation.", dec
+                    .getName().getLocation());
         }
         catch (DuplicateSymbolException dse) {
             //We should have caught this before now, like when we defined the
             //duplicate Operation
-            throw new RuntimeException("Duplicate Operations for " + 
-                    dec.getName().getName() + "?");
+            throw new RuntimeException("Duplicate Operations for "
+                    + dec.getName().getName() + "?");
         }
     }
-    
+
     @Override
     public void postProcedureDec(ProcedureDec dec) {
         myBuilder.endScope();
-        
+
         //We're about to throw away all information about procedure parameters,
         //since they're redundant anyway.  So we sanity-check them first.
         Ty returnTy = dec.getReturnTy();
@@ -240,28 +242,28 @@ public class MathPopulator extends TreeWalkerVisitor {
         }
 
         if (!returnType.equals(myCorrespondingOperation.getReturnType())) {
-            throw new SourceErrorException("Procedure return type does " +
-                    "not correspond to the return type of the operation " +
-                    "it implements.  \n\nExpected type: " + 
-                    myCorrespondingOperation.getReturnType() + " (" + 
-                    myCorrespondingOperation.getSourceModuleIdentifier() +
-                    "." + myCorrespondingOperation.getName() + ")\n\n" +
-                    "Found type: " + returnType, dec.getLocation());
+            throw new SourceErrorException("Procedure return type does "
+                    + "not correspond to the return type of the operation "
+                    + "it implements.  \n\nExpected type: "
+                    + myCorrespondingOperation.getReturnType() + " ("
+                    + myCorrespondingOperation.getSourceModuleIdentifier()
+                    + "." + myCorrespondingOperation.getName() + ")\n\n"
+                    + "Found type: " + returnType, dec.getLocation());
         }
 
-        if (myCorrespondingOperation.getParameters().size() !=
-                myCurrentParameters.size()) {
-            throw new SourceErrorException("Procedure parameter count " +
-                    "does not correspond to the parameter count of the " +
-                    "operation it implements. \n\nExpected count: " +
-                    myCorrespondingOperation.getParameters().size() + " (" +
-                    myCorrespondingOperation.getSourceModuleIdentifier() +
-                    "." + myCorrespondingOperation.getName() + ")\n\n" +
-                    "Found count: " + myCurrentParameters.size(), 
-                    dec.getLocation());
+        if (myCorrespondingOperation.getParameters().size() != myCurrentParameters
+                .size()) {
+            throw new SourceErrorException("Procedure parameter count "
+                    + "does not correspond to the parameter count of the "
+                    + "operation it implements. \n\nExpected count: "
+                    + myCorrespondingOperation.getParameters().size() + " ("
+                    + myCorrespondingOperation.getSourceModuleIdentifier()
+                    + "." + myCorrespondingOperation.getName() + ")\n\n"
+                    + "Found count: " + myCurrentParameters.size(), dec
+                    .getLocation());
         }
 
-        Iterator<ProgramParameterEntry> opParams = 
+        Iterator<ProgramParameterEntry> opParams =
                 myCorrespondingOperation.getParameters().iterator();
         Iterator<ProgramParameterEntry> procParams =
                 myCurrentParameters.iterator();
@@ -272,37 +274,39 @@ public class MathPopulator extends TreeWalkerVisitor {
 
             if (!curOpParam.getParameterMode().canBeImplementedWith(
                     curProcParam.getParameterMode())) {
-                throw new SourceErrorException(
-                        curOpParam.getParameterMode() + "-mode parameter " +
-                        "cannot be implemented with " + 
-                        curProcParam.getParameterMode() + " mode.  " +
-                        "Select one of these valid modes instead: " + 
-                        Arrays.toString(curOpParam.getParameterMode().getValidImplementationModes()),
-                        curProcParam.getDefiningElement().getLocation());
+                throw new SourceErrorException(curOpParam.getParameterMode()
+                        + "-mode parameter "
+                        + "cannot be implemented with "
+                        + curProcParam.getParameterMode()
+                        + " mode.  "
+                        + "Select one of these valid modes instead: "
+                        + Arrays.toString(curOpParam.getParameterMode()
+                                .getValidImplementationModes()), curProcParam
+                        .getDefiningElement().getLocation());
             }
 
             if (!curOpParam.getDeclaredType().equals(
                     curProcParam.getDeclaredType())) {
-                throw new SourceErrorException("Parameter type does not " +
-                        "match corresponding operation parameter type." +
-                        "\n\nExpected: " + curOpParam.getDeclaredType() +
-                        " (" + curOpParam.getSourceModuleIdentifier() + 
-                        "." + myCorrespondingOperation.getName() + ")\n\n" +
-                        "Found: " + curProcParam.getDeclaredType(),
+                throw new SourceErrorException("Parameter type does not "
+                        + "match corresponding operation parameter type."
+                        + "\n\nExpected: " + curOpParam.getDeclaredType()
+                        + " (" + curOpParam.getSourceModuleIdentifier() + "."
+                        + myCorrespondingOperation.getName() + ")\n\n"
+                        + "Found: " + curProcParam.getDeclaredType(),
                         curProcParam.getDefiningElement().getLocation());
             }
 
             if (!curOpParam.getName().equals(curProcParam.getName())) {
-                throw new SourceErrorException("Parmeter name does not " +
-                        "match corresponding operation parameter name." +
-                        "\n\nExpected name: " + curOpParam.getName() + 
-                        " (" + curOpParam.getSourceModuleIdentifier() +
-                        "." + myCorrespondingOperation.getName() + ")\n\n" +
-                        "Found name: " + curProcParam.getName(),
-                        curProcParam.getDefiningElement().getLocation());
+                throw new SourceErrorException("Parmeter name does not "
+                        + "match corresponding operation parameter name."
+                        + "\n\nExpected name: " + curOpParam.getName() + " ("
+                        + curOpParam.getSourceModuleIdentifier() + "."
+                        + myCorrespondingOperation.getName() + ")\n\n"
+                        + "Found name: " + curProcParam.getName(), curProcParam
+                        .getDefiningElement().getLocation());
             }
         }
-        
+
         try {
             myBuilder.getInnermostActiveScope().addProcedure(
                     dec.getName().getName(), dec, myCorrespondingOperation);
@@ -311,10 +315,10 @@ public class MathPopulator extends TreeWalkerVisitor {
             duplicateSymbol(dec.getName().getName(), dec.getName()
                     .getLocation());
         }
-        
+
         myCurrentParameters = null;
     }
-    
+
     @Override
     public void preOperationDec(OperationDec dec) {
         myBuilder.startScope(dec);
@@ -542,19 +546,19 @@ public class MathPopulator extends TreeWalkerVisitor {
     @Override
     public void postVariableNameExp(VariableNameExp node) {
         try {
-            ProgramVariableEntry entry = 
+            ProgramVariableEntry entry =
                     myBuilder.getInnermostActiveScope().queryForOne(
-                        new ProgramVariableQuery(node.getQualifier(), 
-                            node.getName()));
-            
+                            new ProgramVariableQuery(node.getQualifier(), node
+                                    .getName()));
+
             node.setProgramType(entry.getProgramType());
-            
+
             //Handle math typing stuff
             postSymbolExp(node.getQualifier(), node.getName().getName(), node);
         }
         catch (NoSuchSymbolException nsse) {
-            noSuchSymbol(node.getQualifier(), node.getName().getName(), 
-                    node.getLocation());
+            noSuchSymbol(node.getQualifier(), node.getName().getName(), node
+                    .getLocation());
         }
         catch (DuplicateSymbolException dse) {
             throw new RuntimeException("ToDo"); //TODO
@@ -564,16 +568,17 @@ public class MathPopulator extends TreeWalkerVisitor {
     @Override
     public void postProgramParamExp(ProgramParamExp node) {
         List<ProgramExp> args = node.getArguments();
-        
+
         List<PTType> argTypes = new LinkedList<PTType>();
         for (ProgramExp arg : args) {
             argTypes.add(arg.getProgramType());
         }
-        
+
         try {
-            OperationEntry op = myBuilder.getInnermostActiveScope().queryForOne(
-                    new OperationQuery(null, node.getName(), argTypes));
-            
+            OperationEntry op =
+                    myBuilder.getInnermostActiveScope().queryForOne(
+                            new OperationQuery(null, node.getName(), argTypes));
+
             node.setProgramType(op.getReturnType());
             node.setMathType(op.getReturnType().toMath());
         }
@@ -758,16 +763,16 @@ public class MathPopulator extends TreeWalkerVisitor {
     public void postIntegerExp(IntegerExp e) {
         postSymbolExp(e.getQualifier(), "" + e.getValue(), e);
     }
-    
+
     @Override
     public void postProgramIntegerExp(ProgramIntegerExp e) {
-        e.setProgramType(PTPrimitive.getInstance(myTypeGraph, 
+        e.setProgramType(PTPrimitive.getInstance(myTypeGraph,
                 PrimitiveTypeName.INTEGER));
-        
+
         //Do math type stuff
         postSymbolExp(null, "" + e.getValue(), e);
     }
-    
+
     @Override
     public void postProgramOpExp(ProgramOpExp e) {
         e.setProgramType(e.getProgramType(myTypeGraph));
@@ -789,8 +794,9 @@ public class MathPopulator extends TreeWalkerVisitor {
         MTFunction foundExpType;
         foundExpType = foundExp.getConservativePreApplicationType(myTypeGraph);
 
-        MathPopulator.emitDebug("Expression: " + foundExp.toString() + "(" + foundExp.getLocation() + ") "  
-                + " of type " + foundExpType.toString());
+        MathPopulator.emitDebug("Expression: " + foundExp.toString() + "("
+                + foundExp.getLocation() + ") " + " of type "
+                + foundExpType.toString());
 
         MathSymbolEntry intendedEntry = getIntendedFunction(foundExp);
         MTFunction expectedType = (MTFunction) intendedEntry.getType();
@@ -872,9 +878,9 @@ public class MathPopulator extends TreeWalkerVisitor {
                     + ", " + node.getLocation()
                     + ") got through the populator " + "with no math type.");
         }
-        
-        if (node instanceof ProgramExp && 
-                ((ProgramExp) node).getProgramType() == null) {
+
+        if (node instanceof ProgramExp
+                && ((ProgramExp) node).getProgramType() == null) {
             throw new RuntimeException("Exp " + node + " (" + node.getClass()
                     + ", " + node.getLocation()
                     + ") got through the populator " + "with no program type.");
@@ -890,12 +896,46 @@ public class MathPopulator extends TreeWalkerVisitor {
     public void postTypeTheoremDec(TypeTheoremDec node) {
         node.setMathType(myTypeGraph.BOOLEAN);
 
+        Exp assertion = node.getAssertion();
+
+        Exp condition;
+        Exp bindingExpression;
+        Exp typeExp;
+
         try {
-            myTypeGraph
-                    .addRelationship(node.getBindingExpression(), node
-                            .getAssertedType().getMathTypeValue(), node
-                            .getBindingCondition(), myBuilder
-                            .getInnermostActiveScope());
+            InfixExp assertionsAsInfixExp = (InfixExp) assertion;
+            String operator = assertionsAsInfixExp.getOperatorAsString();
+
+            if (operator.equals("implies")) {
+                //Strip out the "implies" if it's hanging around
+                condition = assertionsAsInfixExp.getLeft();
+                assertion = assertionsAsInfixExp.getRight();
+            }
+            else {
+                condition = myTypeGraph.getTrueVarExp();
+            }
+
+            assertionsAsInfixExp = (InfixExp) assertion;
+            operator = assertionsAsInfixExp.getOperatorAsString();
+
+            if (operator.equals(":")) {
+                bindingExpression = assertionsAsInfixExp.getLeft();
+                typeExp = assertionsAsInfixExp.getRight();
+            }
+            else {
+                throw new ClassCastException();
+            }
+        }
+        catch (ClassCastException cse) {
+            throw new SourceErrorException("Top level of type theorem "
+                    + "assertion must be 'implies' or ':'.", assertion
+                    .getLocation());
+        }
+
+        try {
+            myTypeGraph.addRelationship(bindingExpression, typeExp
+                    .getMathTypeValue(), condition, myBuilder
+                    .getInnermostActiveScope());
         }
         catch (IllegalArgumentException iae) {
             throw new SourceErrorException(iae.getMessage(), node.getLocation());
@@ -1271,38 +1311,41 @@ public class MathPopulator extends TreeWalkerVisitor {
                 (MTFunction) eType
                         .getCopyWithVariablesSubstituted(myGenericTypes);
         e = TypeGraph.getCopyWithVariablesSubstituted(e, myGenericTypes);
-        */
-        
+         */
+
         MathSymbolEntry match = null;
 
-        //MTFunction candidateType;
+        MTFunction candidateType;
         for (MathSymbolEntry candidate : candidates) {
             if (candidate.getType() instanceof MTFunction) {
 
                 try {
-                    //candidateType = (MTFunction) candidate.getType();
-                    //candidateType = deschematize(candidateType, soleParameter);
+                    candidateType = (MTFunction) candidate.getType();
+                    candidateType =
+                            candidateType.deschematize(e.getParameters());
+                    emitDebug(candidate.getType() + " deschematizes to "
+                            + candidateType);
 
-                    if (comparison.compare(e, eType,
-                            (MTFunction) candidate.getType())) {
+                    if (comparison.compare(e, eType, candidateType)) {
 
                         if (match != null) {
                             throw new SourceErrorException("Multiple "
                                     + comparison.description() + " domain "
                                     + "matches.  For example, "
-                                    + match.getName() + " : "
-                                    + match.getType() + " and "
-                                    + candidate.getName() + " : "
+                                    + match.getName() + " : " + match.getType()
+                                    + " and " + candidate.getName() + " : "
                                     + candidate.getType()
-                                    + ".  Consider explicitly qualifying.",
-                                    e.getLocation());
+                                    + ".  Consider explicitly qualifying.", e
+                                    .getLocation());
                         }
 
                         match = candidate;
                     }
                 }
-                catch (IllegalArgumentException iae) {
+                catch (NoSolutionException nse) {
                     //couldn't deschematize--try the next one
+                    emitDebug(candidate.getType() + " doesn't deschematize "
+                            + "against " + e.getParameters());
                 }
             }
         }
@@ -1344,8 +1387,7 @@ public class MathPopulator extends TreeWalkerVisitor {
         public boolean compare(AbstractFunctionExp foundValue,
                 MTFunction foundType, MTFunction expectedType) {
 
-            return expectedType.parametersMatch(foundValue.getParameters(),
-                    INEXACT_PARAMETER_MATCH);
+            return myTypeGraph.isSubtype(foundType, expectedType);
         }
 
         @Override

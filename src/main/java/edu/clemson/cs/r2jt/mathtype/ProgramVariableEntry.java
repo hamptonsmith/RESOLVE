@@ -26,7 +26,7 @@ public class ProgramVariableEntry extends SymbolTableEntry {
     public PTType getProgramType() {
         return myType;
     }
-    
+
     @Override
     public String getEntryTypeDescription() {
         return "a program variable";

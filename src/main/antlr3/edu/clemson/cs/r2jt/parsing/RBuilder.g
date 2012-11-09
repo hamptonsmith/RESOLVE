@@ -970,12 +970,10 @@ type_theorem_declaration returns [TypeTheoremDec dec = new TypeTheoremDec()]
     :   ^(TYPE (ps=math_theorem_ident)? COLON
          (FOR quant_vars=math_variable_declaration_group { $dec.addVarDecGroup($quant_vars.vars); })+
          assertion=implies_expression
-         asserted_ty=math_type_expression
          )
         {
           $dec.setName($ps.ps);
           $dec.setAssertion($assertion.exp);
-          $dec.setAssertedType($asserted_ty.ty);
         }
     ;
 
@@ -2040,10 +2038,7 @@ variable_id_list returns [edu.clemson.cs.r2jt.collections.List<PosSymbol> psyms
 // ===============================================================
 
 math_type_expression returns [ArbitraryExpTy ty = null]
-    :   //^(TYPEX ty1=function_type_expression? { $ty = $ty1.ty; })
-    //|   ^(BOOLEAN { $ty = new BooleanTy(); })
-    i=infix_expression { $ty = new ArbitraryExpTy($i.exp); }
-    ;
+    :   i=infix_expression { $ty = new ArbitraryExpTy($i.exp); };
 
 /*
 function_type_expression returns [Ty ty = null]
@@ -2290,17 +2285,26 @@ between_expression returns [Exp exp = null]
     //;
 
 infix_expression returns [Exp exp = null]
-    :   
-          ^(LOCALVAREXP locals=math_variable_declarations lf=math_expression { $exp = new QuantExp(getLocation($LOCALVAREXP), QuantExp.NONE, $locals.decs, null, $lf.exp); })
+    :   (ident COLON)=>ps=ident COLON ty=math_type_expression { 
+            $exp = new ImplicitTypeParameterExp($ps.ps, $ty.ty);
+        }
+    |      ^(LOCALVAREXP locals=math_variable_declarations lf=math_expression { $exp = new QuantExp(getLocation($LOCALVAREXP), QuantExp.NONE, $locals.decs, null, $lf.exp); })
     |
-        (exp1=function_type_expression { $exp = $exp1.exp; }
-    |   (   ^(id=RANGE lf1=function_type_expression rt=function_type_expression)
-        |   ^(id=FREE_OPERATOR lf1=function_type_expression rt=function_type_expression)
+        (exp1=type_assertion_expression { $exp = $exp1.exp; }
+    |   (   ^(id=RANGE lf1=type_assertion_expression rt=type_assertion_expression)
+        |   ^(id=FREE_OPERATOR lf1=type_assertion_expression rt=type_assertion_expression)
         )
         { $exp = new InfixExp(getLocation($id), $lf1.exp, getPosSymbol($id), $rt.exp); }
         )
     |   id=BOOLEAN { $exp = new VarExp(getLocation($id), null, getPosSymbol($id), BooleanType.INSTANCE); }
     ;
+
+type_assertion_expression returns [Exp exp = null]
+    :   left=function_type_expression { $exp = $left.exp; }
+            (c=COLON right=infix_expression {
+                $exp = new InfixExp(getLocation($c), $left.exp, 
+                        getPosSymbol($c), $right.exp);
+            })?;
 
 function_type_expression returns [Exp exp]
     :  left=adding_expression { $exp = $left.exp; }

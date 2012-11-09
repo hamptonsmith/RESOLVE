@@ -27,20 +27,21 @@ public class PTInteger extends PTType {
 
         return result;
     }
-    
+
     private PTInteger(TypeGraph g) {
         super(g);
     }
-    
+
     @Override
     public MTType toMath() {
         return getTypeGraph().Z;
     }
 
     @Override
-    public PTType instantiateGenerics(Map<String, PTType> genericInstantiations,
+    public PTType instantiateGenerics(
+            Map<String, PTType> genericInstantiations,
             FacilityEntry instantiatingFacility) {
         return this;
     }
-    
+
 }
