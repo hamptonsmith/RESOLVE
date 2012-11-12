@@ -7,13 +7,13 @@ package edu.clemson.cs.r2jt.absyn;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 import edu.clemson.cs.r2jt.collections.List;
 import edu.clemson.cs.r2jt.data.Location;
-import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
 import java.util.Collections;
 import java.util.Map;
 
 /**
- * <p>An <code>ImplicitTypeParameterExp</p> is permitted only in two places:
+ * <p>A <code>TypeAssertionExp</code>, generally, allows a sub-expression to be
+ * asserted as belonging to some type.  It is permitted only in two places:
  * 
  * <ul>
  *      <li>Inside the hierarchy of an {@link ArbitraryExpTy ArbitraryExpTy}
@@ -25,7 +25,8 @@ import java.util.Map;
  * </ul>
  * 
  * <p>In the first case, it defines a slot to be bound implicitly by some 
- * component of the type of the actual parameter.  Some examples:</p>
+ * component of the type of the actual parameter.  In this case, the expression
+ * must be a {@link VarExp VarExp}.  Some examples:</p>
  * 
  * <pre>
  * Definition Foo(S : Str(T : Powerset(Z)) : T;
@@ -48,16 +49,27 @@ import java.util.Map;
  * 
  * <p>In the second case, it asserts that any expression on the left side of the
  * colon is of the type on the right side, provided the antecedents of any
- * top-level implication are fulfilled.</p>
+ * top-level implication are fulfilled.  In this case, the expression may be any
+ * kind of expression.</p>
  */
-public class ImplicitTypeParameterExp extends Exp {
+public class TypeAssertionExp extends Exp {
 
-    private final PosSymbol myName;
-    private ArbitraryExpTy myTy;
+    private Exp myExp;
+    private ArbitraryExpTy myAssertedTy;
+    private final Location myLocation;
 
-    public ImplicitTypeParameterExp(PosSymbol name, ArbitraryExpTy ty) {
-        myName = name;
-        myTy = ty;
+    public TypeAssertionExp(Location l, Exp name, ArbitraryExpTy ty) {
+        myLocation = l;
+        myExp = name;
+        myAssertedTy = ty;
+    }
+
+    public Exp getExp() {
+        return myExp;
+    }
+
+    public ArbitraryExpTy getAssertedTy() {
+        return myAssertedTy;
     }
 
     @Override
@@ -72,33 +84,34 @@ public class ImplicitTypeParameterExp extends Exp {
 
     @Override
     public String asString(int indent, int increment) {
-        return myName.getName() + " : "
-                + myTy.asString(indent + increment, increment);
+        return myExp.asString(indent + increment, increment) + " : "
+                + myAssertedTy.asString(indent + increment, increment);
     }
 
     @Override
     public Location getLocation() {
-        return myName.getLocation();
+        return myExp.getLocation();
     }
 
     @Override
     public boolean containsVar(String varName, boolean IsOldExp) {
-        return false;
+        return myExp.containsVar(varName, IsOldExp);
     }
 
     @Override
     public List<Exp> getSubExpressions() {
-        return new List<Exp>(Collections.singletonList(myTy.getArbitraryExp()));
+        return new List(Collections.singletonList(myExp));
     }
 
     @Override
     public void setSubExpression(int index, Exp e) {
-        myTy = new ArbitraryExpTy(e);
+        myExp = e;
     }
 
     @Override
     protected Exp substituteChildren(Map<Exp, Exp> substitutions) {
-        return new ImplicitTypeParameterExp(myName, new ArbitraryExpTy(myTy
-                .getArbitraryExp().substitute(substitutions)));
+        return new TypeAssertionExp(myLocation, myExp
+                .substituteChildren(substitutions), new ArbitraryExpTy(
+                myAssertedTy.getArbitraryExp().substitute(substitutions)));
     }
 }

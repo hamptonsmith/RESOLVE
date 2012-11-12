@@ -1724,7 +1724,7 @@ infix_expression returns [ColsAST ast = null]
     | BOOLEAN;
 
 type_assertion_expression
-    : function_type_expression (COLON infix_expression)?;
+    : function_type_expression (COLON math_type_expression)?;
     
 function_type_expression
     :  adding_expression (FUNCARROW^ adding_expression)*;

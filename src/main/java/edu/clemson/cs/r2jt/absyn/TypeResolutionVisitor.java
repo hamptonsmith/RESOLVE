@@ -76,7 +76,7 @@ public class TypeResolutionVisitor {
         return null;
     }
 
-    public Type getImplicitTypeParameterExp(ImplicitTypeParameterExp data)
+    public Type getImplicitTypeParameterExp(TypeAssertionExp data)
             throws TypeResolutionException {
         assert false : "This method should not be called.";
         return null;

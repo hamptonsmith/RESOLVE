@@ -2285,10 +2285,7 @@ between_expression returns [Exp exp = null]
     //;
 
 infix_expression returns [Exp exp = null]
-    :   (ident COLON)=>ps=ident COLON ty=math_type_expression { 
-            $exp = new ImplicitTypeParameterExp($ps.ps, $ty.ty);
-        }
-    |      ^(LOCALVAREXP locals=math_variable_declarations lf=math_expression { $exp = new QuantExp(getLocation($LOCALVAREXP), QuantExp.NONE, $locals.decs, null, $lf.exp); })
+    :   ^(LOCALVAREXP locals=math_variable_declarations lf=math_expression { $exp = new QuantExp(getLocation($LOCALVAREXP), QuantExp.NONE, $locals.decs, null, $lf.exp); })
     |
         (exp1=type_assertion_expression { $exp = $exp1.exp; }
     |   (   ^(id=RANGE lf1=type_assertion_expression rt=type_assertion_expression)
@@ -2301,9 +2298,9 @@ infix_expression returns [Exp exp = null]
 
 type_assertion_expression returns [Exp exp = null]
     :   left=function_type_expression { $exp = $left.exp; }
-            (c=COLON right=infix_expression {
-                $exp = new InfixExp(getLocation($c), $left.exp, 
-                        getPosSymbol($c), $right.exp);
+            (c=COLON right=math_type_expression {
+                $exp = new TypeAssertionExp(getLocation($c), $left.exp, 
+                        $right.ty);
             })?;
 
 function_type_expression returns [Exp exp]

@@ -900,45 +900,44 @@ public class MathPopulator extends TreeWalkerVisitor {
 
         Exp condition;
         Exp bindingExpression;
-        Exp typeExp;
+        ArbitraryExpTy typeExp;
 
         try {
-            InfixExp assertionsAsInfixExp = (InfixExp) assertion;
-            String operator = assertionsAsInfixExp.getOperatorAsString();
+            if (assertion instanceof InfixExp) {
+                InfixExp assertionsAsInfixExp = (InfixExp) assertion;
+                String operator = assertionsAsInfixExp.getOperatorAsString();
 
-            if (operator.equals("implies")) {
-                //Strip out the "implies" if it's hanging around
-                condition = assertionsAsInfixExp.getLeft();
-                assertion = assertionsAsInfixExp.getRight();
+                if (operator.equals("implies")) {
+                    condition = assertionsAsInfixExp.getLeft();
+                    assertion = assertionsAsInfixExp.getRight();
+                }
+                else {
+                    throw new ClassCastException();
+                }
             }
             else {
                 condition = myTypeGraph.getTrueVarExp();
             }
 
-            assertionsAsInfixExp = (InfixExp) assertion;
-            operator = assertionsAsInfixExp.getOperatorAsString();
+            TypeAssertionExp assertionAsTAE = (TypeAssertionExp) assertion;
 
-            if (operator.equals(":")) {
-                bindingExpression = assertionsAsInfixExp.getLeft();
-                typeExp = assertionsAsInfixExp.getRight();
+            bindingExpression = assertionAsTAE.getExp();
+            typeExp = assertionAsTAE.getAssertedTy();
+
+            try {
+                myTypeGraph.addRelationship(bindingExpression, typeExp
+                        .getMathTypeValue(), condition, myBuilder
+                        .getInnermostActiveScope());
             }
-            else {
-                throw new ClassCastException();
+            catch (IllegalArgumentException iae) {
+                throw new SourceErrorException(iae.getMessage(), node
+                        .getLocation());
             }
         }
         catch (ClassCastException cse) {
             throw new SourceErrorException("Top level of type theorem "
                     + "assertion must be 'implies' or ':'.", assertion
                     .getLocation());
-        }
-
-        try {
-            myTypeGraph.addRelationship(bindingExpression, typeExp
-                    .getMathTypeValue(), condition, myBuilder
-                    .getInnermostActiveScope());
-        }
-        catch (IllegalArgumentException iae) {
-            throw new SourceErrorException(iae.getMessage(), node.getLocation());
         }
 
         myBuilder.endScope();
