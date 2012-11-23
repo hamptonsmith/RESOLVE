@@ -12,6 +12,7 @@ import edu.clemson.cs.r2jt.absyn.TypeDec;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.mathtype.ProgramParameterEntry.ParameterMode;
 import edu.clemson.cs.r2jt.typereasoning.TypeGraph;
+import java.util.Map;
 
 /**
  * <p>A <code>ScopeBuilder</code> is a working, mutable realization of 
@@ -181,6 +182,10 @@ public class ScopeBuilder extends SyntacticScope {
      * @param definingElement The AST Node that introduced the symbol.
      * @param type The declared type of the symbol.
      * @param typeValue The type assigned to the symbol (can be null).
+     * @param schematictypes A map from the names of any implicit type 
+     *             parameters to their bounding types.  May be 
+     *             <code>null</code>, which will be interpreted as the empty
+     *             map.
      * 
      * @throws DuplicateSymbolException If such a symbol is already defined 
      *             directly in the scope represented by this 
@@ -191,13 +196,14 @@ public class ScopeBuilder extends SyntacticScope {
     public MathSymbolEntry addBinding(String name,
             SymbolTableEntry.Quantification q,
             ResolveConceptualElement definingElement, MTType type,
-            MTType typeValue) throws DuplicateSymbolException {
+            MTType typeValue, Map<String, MTType> schematicTypes)
+            throws DuplicateSymbolException {
 
         sanityCheckBindArguments(name, definingElement, type);
 
         MathSymbolEntry entry =
                 new MathSymbolEntry(myTypeGraph, name, q, definingElement,
-                        type, typeValue, myRootModule);
+                        type, typeValue, schematicTypes, myRootModule);
 
         myBindings.put(name, entry);
 
@@ -208,7 +214,7 @@ public class ScopeBuilder extends SyntacticScope {
             SymbolTableEntry.Quantification q,
             ResolveConceptualElement definingElement, MTType type)
             throws DuplicateSymbolException {
-        return addBinding(name, q, definingElement, type, null);
+        return addBinding(name, q, definingElement, type, null, null);
     }
 
     public MathSymbolEntry addBinding(String name,
@@ -216,7 +222,7 @@ public class ScopeBuilder extends SyntacticScope {
             MTType typeValue) throws DuplicateSymbolException {
 
         return addBinding(name, SymbolTableEntry.Quantification.NONE,
-                definingElement, type, typeValue);
+                definingElement, type, typeValue, null);
     }
 
     public MathSymbolEntry addBinding(String name,

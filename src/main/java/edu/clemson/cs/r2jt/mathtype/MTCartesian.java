@@ -10,6 +10,9 @@ import java.util.NoSuchElementException;
 
 import edu.clemson.cs.r2jt.typereasoning.TypeGraph;
 
+/**
+ * TODO: This is a wreck.  Clean it up.
+ */
 public class MTCartesian extends MTAbstract<MTCartesian> {
 
     private static final int BASE_HASH = "MTCartesian".hashCode();

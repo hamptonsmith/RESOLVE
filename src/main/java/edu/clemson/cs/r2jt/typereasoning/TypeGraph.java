@@ -68,11 +68,6 @@ public class TypeGraph {
 
     public TypeGraph() {
         this.myTypeNodes = new HashMap<MTType, TypeNode>();
-
-        //IDEs will rightfully warn that passing "this" in the constructor is
-        //dangerous.  We know what we're doing though, so we suppress the error
-        //with this strange-looking code.
-        TypeGraph thisTG = this;
     }
 
     private Map<MTType, Map<String, MTType>> getSyntacticSubtypesWithRelationships(
@@ -179,12 +174,19 @@ public class TypeGraph {
     public boolean isKnownToBeIn(MTType value, MTType expected) {
         boolean result;
 
-        try {
-            Exp conditions = getValidTypeConditions(value, expected);
-            result = conditions.isLiteralTrue();
-        }
-        catch (TypeMismatchException e) {
-            result = false;
+        //If the type of the given value is a subtype of the expected type, then
+        //its value must necessarily be in the expected type.  Note we can't
+        //reason about the type of MTYPE, so we exclude it
+        result = (value != MTYPE) && isSubtype(value.getType(), expected);
+
+        if (!result) {
+            try {
+                Exp conditions = getValidTypeConditions(value, expected);
+                result = conditions.isLiteralTrue();
+            }
+            catch (TypeMismatchException e) {
+                result = false;
+            }
         }
 
         return result;
@@ -593,8 +595,9 @@ public class TypeGraph {
                 canonicalize(destination, environment, "d");
 
         Set<String> universalVariableNames =
-                getUniversallyQuantifiedVariables(environment,
-                        sourceCanonicalResult, destinationCanonicalResult);
+                getUniversallyQuantifiedVariables(source, destination,
+                        environment, sourceCanonicalResult,
+                        destinationCanonicalResult);
 
         Map<String, List<String>> sourceEnvironmentalToCanonical =
                 invertMap(sourceCanonicalResult.canonicalToEnvironmental);
@@ -745,34 +748,57 @@ public class TypeGraph {
         return environmentalToExemplar;
     }
 
-    private static Set<String> getUniversallyQuantifiedVariables(
-            Scope environment, CanonicalizationResult sourceCanonicalResult,
+    private static Set<String> getUniversallyQuantifiedVariables(MTType source,
+            MTType destination, Scope environment,
+            CanonicalizationResult sourceCanonicalResult,
             CanonicalizationResult destinationCanonicalResult) {
 
-        //Get a list of universally quantified type variables in scope--if any 
-        //such variable is shadowed, we've already got trouble because there's
-        //no way to bind it
-        List<MathSymbolEntry> universalEntries =
-                environment.query(UniversalVariableQuery.INSTANCE);
-        Set<String> universalVariableNames = new HashSet<String>();
-        String entryName;
-        for (MathSymbolEntry entry : universalEntries) {
-            entryName = entry.getName();
-            if (universalVariableNames.contains(entryName)) {
-                throw new SourceErrorException("Universal type "
-                        + "variable \"" + entryName + "\" shadows an existing "
-                        + "one, preventing it from being concretely bound.",
-                        entry.getDefiningElement().getLocation());
-            }
+        Set<String> unboundTypeClosure = new HashSet<String>();
+        Set<String> newUnboundTypes = new HashSet<String>();
+        Set<String> nextBatch;
 
-            if (entry.getType().isKnownToContainOnlyMTypes()) {
+        UnboundTypeAccumulator uta = new UnboundTypeAccumulator(environment);
+        source.accept(uta);
+        destination.accept(uta);
+        nextBatch = uta.getFinalUnboundNamedTypes();
 
-                universalVariableNames.add(entry.getName());
+        try {
+            while (!nextBatch.isEmpty()) {
+                newUnboundTypes.clear();
+                newUnboundTypes.addAll(nextBatch);
+                nextBatch.clear();
+
+                for (String newUnboundType : newUnboundTypes) {
+                    //If it wasn't a MathSymbolEntry, the type checker would 
+                    //already have bombed
+                    MathSymbolEntry entry =
+                            (MathSymbolEntry) environment
+                                    .queryForOne(new UnqualifiedNameQuery(
+                                            newUnboundType));
+
+                    MTType type = entry.getType();
+                    uta = new UnboundTypeAccumulator(environment);
+                    type.accept(uta);
+                    nextBatch.addAll(uta.getFinalUnboundNamedTypes());
+                }
+
+                unboundTypeClosure.addAll(newUnboundTypes);
+                nextBatch.removeAll(newUnboundTypes);
             }
+        }
+        catch (NoSuchSymbolException nsse) {
+            //This shouldn't be possible, the type checker would already have
+            //bombed
+            throw new RuntimeException(nsse);
+        }
+        catch (DuplicateSymbolException dse) {
+            //This shouldn't be possible, the type checker would already have
+            //bombed
+            throw new RuntimeException(dse);
         }
 
         //Make sure all those variables get bound
-        Set<String> remaining = new HashSet<String>(universalVariableNames);
+        Set<String> remaining = new HashSet<String>(unboundTypeClosure);
         remaining.removeAll(sourceCanonicalResult.canonicalToEnvironmental
                 .values());
         remaining.removeAll(destinationCanonicalResult.canonicalToEnvironmental
@@ -782,7 +808,7 @@ public class TypeGraph {
                     + "type variables will not be bound: " + remaining);
         }
 
-        return universalVariableNames;
+        return unboundTypeClosure;
     }
 
     private TypeNode getTypeNode(MTType t) {

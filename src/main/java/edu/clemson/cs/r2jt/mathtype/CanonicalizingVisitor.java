@@ -107,7 +107,8 @@ public class CanonicalizingVisitor extends MutatingVisitor {
                         (MathSymbolEntry) myEnvironment
                                 .queryForOne(new UnqualifiedNameQuery(t.name));
 
-                if (entry.getQuantification() == SymbolTableEntry.Quantification.UNIVERSAL) {
+                if (entry.getQuantification().equals(
+                        SymbolTableEntry.Quantification.UNIVERSAL)) {
                     originalBinding = entry.getType();
                     myCanonicalToEnvironmentOriginal.put(canonicalName
                             + myPredicateSuffix, t.name);
@@ -135,7 +136,7 @@ public class CanonicalizingVisitor extends MutatingVisitor {
             myQuantifiedVariableCount++;
 
             //We're going to weaken it's declared type all the way to MType, so
-            //make a note of it's original declared type
+            //make a note of its original declared type
             myPredicates.add(new IsInPredicate(myTypeGraph,
                     canonicalTypeWithSuffix, originalBinding));
 

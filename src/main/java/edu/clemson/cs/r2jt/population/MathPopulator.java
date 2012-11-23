@@ -15,10 +15,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MathPopulator extends TreeWalkerVisitor {
 
@@ -40,6 +42,9 @@ public class MathPopulator extends TreeWalkerVisitor {
     private ModuleScopeBuilder myCurModuleScope;
 
     private int myTypeValueDepth = 0;
+    private int myExpressionDepth = 0;
+
+    private boolean myInTypeTheoremBindingExpFlag = false;
 
     /**
      * <p>Any quantification-introducing syntactic node (like, e.g., a 
@@ -69,6 +74,19 @@ public class MathPopulator extends TreeWalkerVisitor {
      * no need for a stack.</p>
      */
     private DefinitionDec myCurrentDirectDefinition;
+
+    private Map<String, MTType> myDefinitionSchematicTypes =
+            new HashMap<String, MTType>();
+
+    /**
+     * <p>This simply enables an error check--as a definition uses named types,
+     * we keep track of them, and when an implicit type is introduced, we make
+     * sure that it hasn't been "used" yet, thus leading to a confusing scenario
+     * where some instances of the name should refer to a type already in scope
+     * as the definition is declared and other instance refer to the implicit
+     * type parameter.</p>
+     */
+    private Set<String> myDefinitionNamedTypes = new HashSet<String>();
 
     /**
      * <p>While walking a procedure, this is set to the entry for the operation 
@@ -498,7 +516,7 @@ public class MathPopulator extends TreeWalkerVisitor {
 
         String name = node.getName().getName();
         addBinding(name, node.getName().getLocation(), node,
-                myTypeGraph.BOOLEAN);
+                myTypeGraph.BOOLEAN, null);
 
         MathPopulator.emitDebug("New theorem: " + name);
     }
@@ -516,7 +534,7 @@ public class MathPopulator extends TreeWalkerVisitor {
         //TODO : the for-alls in a type theorem should be normal QuantExps and
         //       the quantification here should depend on the innermost QuantExp
         addBinding(varName, node.getName().getLocation(), q, node,
-                mathTypeValue);
+                mathTypeValue, null);
 
         MathPopulator.emitDebug("  New variable: " + varName + " of type "
                 + mathTypeValue.toString() + " with quantification " + q);
@@ -598,6 +616,92 @@ public class MathPopulator extends TreeWalkerVisitor {
         exp.setMathTypeValue(exp.getExp().getMathTypeValue());
     }
 
+    public void walkTypeAssertionExp(TypeAssertionExp node) {
+
+        //If we exist as an implicit type parameter, there's no way our 
+        //expression can know its own type (that's defined by the asserted Ty),
+        //so we skip walking it and let postTypeAssertionExp() set its type for
+        //it
+        if (myTypeValueDepth == 0) {
+            myWalker.visit(node.getExp());
+        }
+
+        myWalker.visit(node.getAssertedTy());
+    }
+
+    @Override
+    public void postTypeAssertionExp(TypeAssertionExp node) {
+        if (myTypeValueDepth == 0
+                && (myExpressionDepth > 2 || !myInTypeTheoremBindingExpFlag)) {
+            throw new SourceErrorException("This construct only permitted in "
+                    + "type declarations or in expressions matching: \n\n"
+                    + "   Type Theorem <name>: <quantifiers>, \n"
+                    + "       [<condition> implies] : <assertedType>", node
+                    .getLocation());
+        }
+        //Note that postTypeTheoremDec() checks the "form" of a type theorem at
+        //the top two levels.  So all we're checking for here is that the type
+        //assertion didn't happen deeper than that (where it shouldn't appear).
+
+        //If we're the assertion of a type theorem, then postTypeTheoremDec()
+        //will take care of any logic.  If we're part of a type declaration,
+        //on the other hand, we've got some bookkeeping to do...
+        if (myTypeValueDepth > 0) {
+            try {
+                VarExp nodeExp = (VarExp) node.getExp();
+                try {
+                    myBuilder.getInnermostActiveScope().addBinding(
+                            nodeExp.getName().getName(),
+                            SymbolTableEntry.Quantification.UNIVERSAL, node,
+                            node.getAssertedTy().getMathType());
+                    node.setMathType(node.getAssertedTy().getMathType());
+                    node.setMathTypeValue(new MTNamed(myTypeGraph, nodeExp
+                            .getName().getName()));
+
+                    //See walkTypeAssertionExp(): we are responsible for 
+                    //setting the VarExp's type.
+                    nodeExp.setMathType(node.getAssertedTy().getMathType());
+                    node.setMathTypeValue(new MTNamed(myTypeGraph, nodeExp
+                            .getName().getName()));
+
+                    if (myDefinitionNamedTypes.contains(nodeExp.getName()
+                            .getName())) {
+                        //Regardless of where in the expression it appears, an
+                        //implicit type parameter exists at the top level of a
+                        //definition, and thus a definition that contains, e.g.,
+                        //an implicit type parameter T cannot make reference
+                        //to some existing type with that name (except via full
+                        //qualification), thus the introduction of an implicit
+                        //type parameter must precede any use of that 
+                        //parameter's name, even if the name exists in-scope
+                        //before the parameter is declared
+                        throw new SourceErrorException("Introduction of "
+                                + "implicit type parameter must precede any "
+                                + "of that variable name.", nodeExp
+                                .getLocation());
+                    }
+
+                    //Note that a redudantly named type parameter would be 
+                    //caught when we add a symbol to the symbol table, so no
+                    //need to check here
+                    myDefinitionSchematicTypes.put(nodeExp.getName().getName(),
+                            node.getAssertedTy().getMathType());
+                }
+                catch (DuplicateSymbolException dse) {
+                    duplicateSymbol(nodeExp.getName().getName(), nodeExp
+                            .getLocation());
+                }
+            }
+            catch (ClassCastException cce) {
+                throw new SourceErrorException("Must be a variable name.", node
+                        .getExp().getLocation());
+            }
+        }
+        else {
+            node.setMathType(myTypeGraph.BOOLEAN);
+        }
+    }
+
     @Override
     public void preDefinitionDec(DefinitionDec node) {
         myBuilder.startScope(node);
@@ -605,6 +709,9 @@ public class MathPopulator extends TreeWalkerVisitor {
         if (!node.isInductive()) {
             myCurrentDirectDefinition = node;
         }
+
+        myDefinitionSchematicTypes.clear();
+        myDefinitionNamedTypes.clear();
     }
 
     @Override
@@ -636,7 +743,7 @@ public class MathPopulator extends TreeWalkerVisitor {
         //returns true from knownToContainOnlyMTypes(), a new type value will
         //still be created by the symbol table
         addBinding(definitionSymbol, node.getName().getLocation(), node,
-                declaredType, typeValue);
+                declaredType, typeValue, myDefinitionSchematicTypes);
 
         MathPopulator.emitDebug("New definition: " + definitionSymbol
                 + " of type " + declaredType
@@ -784,6 +891,16 @@ public class MathPopulator extends TreeWalkerVisitor {
         MathSymbolEntry intendedEntry =
                 postSymbolExp(e.getQualifier(), e.getName().getName(), e);
 
+        if (myTypeValueDepth > 0 && e.getQualifier() == null) {
+            try {
+                intendedEntry.getTypeValue();
+                myDefinitionNamedTypes.add(intendedEntry.getName());
+            }
+            catch (SymbolNotOfKindTypeException snokte) {
+                //No problem, just don't need to add it
+            }
+        }
+
         e.setQuantification(intendedEntry.getQuantification()
                 .toVarExpQuantificationCode());
     }
@@ -871,6 +988,11 @@ public class MathPopulator extends TreeWalkerVisitor {
     }
 
     @Override
+    public void preExp(Exp node) {
+        myExpressionDepth++;
+    }
+
+    @Override
     public void postExp(Exp node) {
         //myMathModeFlag && 
         if (node.getMathType() == null) {
@@ -885,11 +1007,22 @@ public class MathPopulator extends TreeWalkerVisitor {
                     + ", " + node.getLocation()
                     + ") got through the populator " + "with no program type.");
         }
+
+        myExpressionDepth--;
     }
 
     @Override
     public void preTypeTheoremDec(TypeTheoremDec node) {
         myBuilder.startScope(node);
+    }
+
+    @Override
+    public void midTypeTheoremDec(TypeTheoremDec node,
+            ResolveConceptualElement prevChild,
+            ResolveConceptualElement nextChild) {
+
+        myInTypeTheoremBindingExpFlag =
+                (prevChild instanceof Dec && nextChild instanceof Exp);
     }
 
     @Override
@@ -1032,11 +1165,11 @@ public class MathPopulator extends TreeWalkerVisitor {
     private SymbolTableEntry addBinding(String name, Location l,
             SymbolTableEntry.Quantification q,
             ResolveConceptualElement definingElement, MTType type,
-            MTType typeValue) {
+            MTType typeValue, Map<String, MTType> schematicTypes) {
         if (type != null) {
             try {
                 return myBuilder.getInnermostActiveScope().addBinding(name, q,
-                        definingElement, type, typeValue);
+                        definingElement, type, typeValue, schematicTypes);
             }
             catch (DuplicateSymbolException dse) {
                 duplicateSymbol(name, l);
@@ -1047,21 +1180,24 @@ public class MathPopulator extends TreeWalkerVisitor {
 
     private SymbolTableEntry addBinding(String name, Location l,
             ResolveConceptualElement definingElement, MTType type,
-            MTType typeValue) {
+            MTType typeValue, Map<String, MTType> schematicTypes) {
         return addBinding(name, l, SymbolTableEntry.Quantification.NONE,
-                definingElement, type, typeValue);
+                definingElement, type, typeValue, schematicTypes);
     }
 
     private SymbolTableEntry addBinding(String name, Location l,
             SymbolTableEntry.Quantification q,
-            ResolveConceptualElement definingElement, MTType type) {
-        return addBinding(name, l, q, definingElement, type, null);
+            ResolveConceptualElement definingElement, MTType type,
+            Map<String, MTType> schematicTypes) {
+        return addBinding(name, l, q, definingElement, type, null,
+                schematicTypes);
     }
 
     private SymbolTableEntry addBinding(String name, Location l,
-            ResolveConceptualElement definingElement, MTType type) {
+            ResolveConceptualElement definingElement, MTType type,
+            Map<String, MTType> schematicTypes) {
         return addBinding(name, l, SymbolTableEntry.Quantification.NONE,
-                definingElement, type, null);
+                definingElement, type, null, schematicTypes);
     }
 
     private void enteringTypeValueNode() {
@@ -1319,9 +1455,8 @@ public class MathPopulator extends TreeWalkerVisitor {
             if (candidate.getType() instanceof MTFunction) {
 
                 try {
+                    candidate = candidate.deschematize(e.getParameters());
                     candidateType = (MTFunction) candidate.getType();
-                    candidateType =
-                            candidateType.deschematize(e.getParameters());
                     emitDebug(candidate.getType() + " deschematizes to "
                             + candidateType);
 

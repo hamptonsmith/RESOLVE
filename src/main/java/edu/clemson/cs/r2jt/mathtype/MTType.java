@@ -53,6 +53,7 @@ public abstract class MTType {
      * @return <code>true</code> <strong>iff</strong> this <code>MTType</code>
      *		is alpha equivalent to <code>o</code>.
      */
+    @Override
     public final boolean equals(Object o) {
 
         //All 'equals' logic should be put into AlphaEquivalencyChecker!  Don't
@@ -186,6 +187,7 @@ public abstract class MTType {
         return super.hashCode();
     }
 
+    @Override
     public final int hashCode() {
         return getHashCode();
     }

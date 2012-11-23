@@ -12,11 +12,13 @@ public class BoundVariableVisitor extends TypeVisitor {
     private Deque<Map<String, BindingInfo>> myBoundVariables =
             new LinkedList<Map<String, BindingInfo>>();
 
+    @Override
     public final void beginMTBigUnion(MTBigUnion u) {
         myBoundVariables.push(toBindingInfoMap(u.getQuantifiedVariables()));
         boundBeginMTBigUnion(u);
     }
 
+    @Override
     public final void endMTBigUnion(MTBigUnion u) {
         boundEndMTBigUnion(u);
         myBoundVariables.pop();

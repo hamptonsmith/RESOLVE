@@ -129,7 +129,7 @@ public class ProgramParameterEntry extends SymbolTableEntry {
         myMathSymbolAlterEgo =
                 new MathSymbolEntry(type.getTypeGraph(), name,
                         Quantification.NONE, definingElement, type.toMath(),
-                        typeValue, sourceModule);
+                        typeValue, null, sourceModule);
 
         myProgramVariableAlterEgo =
                 new ProgramVariableEntry(getName(), getDefiningElement(),

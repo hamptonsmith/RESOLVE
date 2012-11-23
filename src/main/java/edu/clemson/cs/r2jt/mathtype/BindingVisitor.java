@@ -72,7 +72,7 @@ public class BindingVisitor extends SymmetricBoundVariableVisitor {
         if (t1 instanceof MTNamed) {
             String t1Name = ((MTNamed) t1).name;
             MTType t1DeclaredType = getInnermostBinding1(t1Name);
-            myMatchSoFarFlag &= myTypeGraph.isSubtype(t1DeclaredType, t2);
+            myMatchSoFarFlag &= myTypeGraph.isSubtype(t2, t1DeclaredType);
 
             if (myMatchSoFarFlag) {
                 myBindings.put(t1Name, t2);

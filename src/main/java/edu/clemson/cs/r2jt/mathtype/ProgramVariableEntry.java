@@ -20,7 +20,7 @@ public class ProgramVariableEntry extends SymbolTableEntry {
         myMathSymbolAlterEgo =
                 new MathSymbolEntry(type.getTypeGraph(), name,
                         Quantification.NONE, definingElement, type.toMath(),
-                        null, sourceModule);
+                        null, null, sourceModule);
     }
 
     public PTType getProgramType() {
