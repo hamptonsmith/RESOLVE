@@ -1,9 +1,8 @@
 package edu.clemson.cs.r2jt.mathtype;
 
-import java.util.Map;
-
 import edu.clemson.cs.r2jt.absyn.ResolveConceptualElement;
 import edu.clemson.cs.r2jt.data.Location;
+import java.util.Map;
 
 public class ShortFacilityEntry extends ModuleEntry {
 

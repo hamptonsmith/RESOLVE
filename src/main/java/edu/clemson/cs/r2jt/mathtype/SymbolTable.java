@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-interface SymbolTable extends Iterable<SymbolTableEntry> {
+public interface SymbolTable extends Iterable<SymbolTableEntry> {
 
     public void put(String name, SymbolTableEntry entry);
 

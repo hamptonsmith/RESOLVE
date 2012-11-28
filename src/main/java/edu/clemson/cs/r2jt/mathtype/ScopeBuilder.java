@@ -13,6 +13,7 @@ import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.mathtype.ProgramParameterEntry.ParameterMode;
 import edu.clemson.cs.r2jt.typereasoning.TypeGraph;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>A <code>ScopeBuilder</code> is a working, mutable realization of 
@@ -196,14 +197,16 @@ public class ScopeBuilder extends SyntacticScope {
     public MathSymbolEntry addBinding(String name,
             SymbolTableEntry.Quantification q,
             ResolveConceptualElement definingElement, MTType type,
-            MTType typeValue, Map<String, MTType> schematicTypes)
+            MTType typeValue, Map<String, MTType> schematicTypes,
+            Map<String, MTType> genericsInDefiningContext)
             throws DuplicateSymbolException {
 
         sanityCheckBindArguments(name, definingElement, type);
 
         MathSymbolEntry entry =
                 new MathSymbolEntry(myTypeGraph, name, q, definingElement,
-                        type, typeValue, schematicTypes, myRootModule);
+                        type, typeValue, schematicTypes, 
+                        genericsInDefiningContext, myRootModule);
 
         myBindings.put(name, entry);
 
@@ -214,7 +217,7 @@ public class ScopeBuilder extends SyntacticScope {
             SymbolTableEntry.Quantification q,
             ResolveConceptualElement definingElement, MTType type)
             throws DuplicateSymbolException {
-        return addBinding(name, q, definingElement, type, null, null);
+        return addBinding(name, q, definingElement, type, null, null, null);
     }
 
     public MathSymbolEntry addBinding(String name,
@@ -222,7 +225,7 @@ public class ScopeBuilder extends SyntacticScope {
             MTType typeValue) throws DuplicateSymbolException {
 
         return addBinding(name, SymbolTableEntry.Quantification.NONE,
-                definingElement, type, typeValue, null);
+                definingElement, type, typeValue, null, null);
     }
 
     public MathSymbolEntry addBinding(String name,

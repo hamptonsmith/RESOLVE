@@ -189,7 +189,7 @@ public class MathPopulator extends TreeWalkerVisitor {
             myBuilder.getInnermostActiveScope().addFormalParameter(paramName,
                     param, ParameterMode.TYPE, new PTElement(myTypeGraph));
 
-            myGenericTypes.put(paramName, myTypeGraph.ENTITY);
+            myGenericTypes.put(paramName, myTypeGraph.MTYPE);
         }
         catch (DuplicateSymbolException dse) {
             duplicateSymbol(param.getName().getName(), param.getName()
@@ -993,7 +993,18 @@ public class MathPopulator extends TreeWalkerVisitor {
     }
 
     @Override
+    public void preProgramFunctionExp(ProgramFunctionExp node) {
+        System.out.println("poop");
+    }
+
+    @Override
+    public void preWhileStmt(WhileStmt data) {
+        System.out.println("boobs");
+    }
+    
+    @Override
     public void postExp(Exp node) {
+        
         //myMathModeFlag && 
         if (node.getMathType() == null) {
             throw new RuntimeException("Exp " + node + " (" + node.getClass()
@@ -1169,7 +1180,8 @@ public class MathPopulator extends TreeWalkerVisitor {
         if (type != null) {
             try {
                 return myBuilder.getInnermostActiveScope().addBinding(name, q,
-                        definingElement, type, typeValue, schematicTypes);
+                        definingElement, type, typeValue, schematicTypes, 
+                        myGenericTypes);
             }
             catch (DuplicateSymbolException dse) {
                 duplicateSymbol(name, l);
@@ -1455,7 +1467,8 @@ public class MathPopulator extends TreeWalkerVisitor {
             if (candidate.getType() instanceof MTFunction) {
 
                 try {
-                    candidate = candidate.deschematize(e.getParameters());
+                    candidate = candidate.deschematize(e.getParameters(), 
+                            myBuilder.getInnermostActiveScope());
                     candidateType = (MTFunction) candidate.getType();
                     emitDebug(candidate.getType() + " deschematizes to "
                             + candidateType);

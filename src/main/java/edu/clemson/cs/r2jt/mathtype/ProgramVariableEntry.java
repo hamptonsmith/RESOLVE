@@ -17,10 +17,12 @@ public class ProgramVariableEntry extends SymbolTableEntry {
 
         myType = type;
 
+        //TODO: Probably need to recajigger this to correctly account for any
+        //      generics in the defining context
         myMathSymbolAlterEgo =
                 new MathSymbolEntry(type.getTypeGraph(), name,
                         Quantification.NONE, definingElement, type.toMath(),
-                        null, null, sourceModule);
+                        null, null, null, sourceModule);
     }
 
     public PTType getProgramType() {

@@ -24,10 +24,13 @@ public class ProgramTypeEntry extends SymbolTableEntry {
         super(name, definingElement, sourceModule);
 
         myModelType = modelType;
+        
+        //TODO: Probably need to recajigger this to correctly account for any
+        //      generics in the defining context
         myMathTypeAlterEgo =
                 new MathSymbolEntry(g, name,
                         SymbolTableEntry.Quantification.NONE, definingElement,
-                        g.MTYPE, modelType, null, sourceModule);
+                        g.MTYPE, modelType, null, null, sourceModule);
         myProgramType = programType;
     }
 

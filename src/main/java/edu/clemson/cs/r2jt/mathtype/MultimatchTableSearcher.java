@@ -17,5 +17,6 @@ public interface MultimatchTableSearcher<E extends SymbolTableEntry>
      * {@link DuplicateSymbolException DuplicateSymbolException}.  Otherwise,
      * behaves identically.</p>
      */
+    @Override
     public boolean addMatches(SymbolTable entries, List<E> matches);
 }

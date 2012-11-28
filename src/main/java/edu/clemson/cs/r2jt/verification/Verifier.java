@@ -464,9 +464,18 @@ public class Verifier extends ResolveConceptualVisitor {
                 ConcType tmp = (ConcType) tmpObj;
                 VarExp tmpVarExp = new VarExp();
                 tmpVarExp.setName(tmp.getName());
+                
                 VarExp repVarExp = new VarExp();
                 tmp = NQV(finalConf, tmp, assertion);
                 repVarExp.setName(tmp.getName());
+                
+                if (tmp.getType() instanceof NewType) {
+                    MTType tmpNewType = 
+                            ((NewType) tmp.getType()).getWrappedType();
+                    
+                    tmpVarExp.setMathType(tmpNewType);
+                    repVarExp.setMathType(tmpNewType);
+                }
 
                 finalConf = replace(finalConf, tmpVarExp, repVarExp);
 
@@ -2013,6 +2022,9 @@ public class Verifier extends ResolveConceptualVisitor {
         PosSymbol name = getProgramOpName(exp);
         ProgramFunctionExp pFE = new ProgramFunctionExp();
         pFE.setName(name);
+        pFE.setMathType(exp.getMathType());
+        pFE.setMathTypeValue(exp.getMathTypeValue());
+        pFE.setProgramType(exp.getProgramType());
         List<ProgramExp> lst = new List<ProgramExp>();
         lst.add(exp.getFirst());
         lst.add(exp.getSecond());
@@ -4866,6 +4878,9 @@ public class Verifier extends ResolveConceptualVisitor {
         else if (realRep instanceof VariableNameExp) {
             VarExp exp = new VarExp();
             exp.setName(((VariableNameExp) realRep).getName());
+            exp.setType(realRep.getType());
+            exp.setMathType(realRep.getMathType());
+            exp.setMathTypeValue(realRep.getMathTypeValue());
             return exp;
         }
         else if (realRep instanceof VariableDotExp) {
@@ -4887,7 +4902,7 @@ public class Verifier extends ResolveConceptualVisitor {
                     newSegements.add(varExp);
                 }
                 else {
-                    System.err.println("Problem");
+                    throw new RuntimeException();
                 }
             }
             exp.setSegments(newSegements);
@@ -6497,6 +6512,8 @@ public class Verifier extends ResolveConceptualVisitor {
 
                 specVarExp = new VarExp();
                 ((VarExp) specVarExp).setName(specVar.getName());
+                ((VarExp) specVarExp).setMathType(realVar.getMathType());
+                ((VarExp) specVarExp).setMathTypeValue(realVar.getMathTypeValue());
 
                 replace = getReplacement(realVar, assertion);
 
@@ -6805,6 +6822,11 @@ public class Verifier extends ResolveConceptualVisitor {
 
                             quesVar = new VarExp();
                             ((VarExp) quesVar).setName(quesSV.getName());
+                            ((VarExp) quesVar).setType(quesSV.getType());
+                            ((VarExp) quesVar).setMathType(
+                                    realVar.getMathType());
+                            ((VarExp) quesVar).setMathTypeValue(
+                                    realVar.getMathTypeValue());
                         }
 
                         assertion.addFreeVar(quesSV);
@@ -6917,6 +6939,9 @@ public class Verifier extends ResolveConceptualVisitor {
             String name = varDec.getName().toString(); //	Spec Name
             old.setName(createPosSymbol(name)); //  Spec Var
             undRepl.setName(createPosSymbol(tempRepChar + name.toString())); // 	_Spec
+            undRepl.setType(repl.getType());
+            undRepl.setMathType(repl.getMathType());
+            undRepl.setMathTypeValue(repl.getMathTypeValue());
 
             Exp tmp = Exp.replace(requires, old, undRepl);
             undRepList.add(undRepl);

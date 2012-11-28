@@ -126,10 +126,12 @@ public class ProgramParameterEntry extends SymbolTableEntry {
             typeValue = new PTGeneric(type.getTypeGraph(), name).toMath();
         }
 
+        //TODO: Probably need to recajigger this to correctly account for any
+        //      generics in the defining context
         myMathSymbolAlterEgo =
                 new MathSymbolEntry(type.getTypeGraph(), name,
                         Quantification.NONE, definingElement, type.toMath(),
-                        typeValue, null, sourceModule);
+                        typeValue, null, null, sourceModule);
 
         myProgramVariableAlterEgo =
                 new ProgramVariableEntry(getName(), getDefiningElement(),

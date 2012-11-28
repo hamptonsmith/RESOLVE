@@ -1,9 +1,8 @@
 package edu.clemson.cs.r2jt.mathtype;
 
+import edu.clemson.cs.r2jt.typereasoning.TypeGraph;
 import java.util.HashMap;
 import java.util.Map;
-
-import edu.clemson.cs.r2jt.typereasoning.TypeGraph;
 
 /**
  * <p>Attempts to bind the concrete expression <code>t1</code> against the
@@ -29,6 +28,12 @@ public class BindingVisitor extends SymmetricBoundVariableVisitor {
         super(concreteContext);
         myTypeGraph = g;
     }
+    
+    public BindingVisitor(TypeGraph g, Map<String, MTType> concreteContext,
+            Map<String, MTType> templateContext) {
+        super(concreteContext, templateContext);
+        myTypeGraph = g;
+    }
 
     public boolean binds() {
         return myMatchSoFarFlag;
@@ -38,12 +43,6 @@ public class BindingVisitor extends SymmetricBoundVariableVisitor {
         return myBindings;
     }
 
-    /*@Override
-    public boolean beginMTType(MTType t1, MTType t2) {
-    	//Syntactic subtypes definitely bind.  No need to descend
-    	//return !t1.isSyntacticSubtypeOf(t2);
-    }*/
-
     @Override
     public boolean beginMTNamed(MTNamed t1, MTNamed t2) {
         MTType t1DeclaredType = getInnermostBinding1(t1.name);
@@ -52,6 +51,10 @@ public class BindingVisitor extends SymmetricBoundVariableVisitor {
         //Fine if the declared type of t1 restricts the declared type of t2
         myMatchSoFarFlag &=
                 myTypeGraph.isSubtype(t1DeclaredType, t2DeclaredType);
+        
+        if (myMatchSoFarFlag) {
+            myBindings.put(t2.name, t1);
+        }
 
         //No need to keep searching if we've already found we don't bind
         return myMatchSoFarFlag;
@@ -69,13 +72,13 @@ public class BindingVisitor extends SymmetricBoundVariableVisitor {
     public boolean mismatch(MTType t1, MTType t2) {
 
         //This is fine if t1 names a type of which t2 is a supertype
-        if (t1 instanceof MTNamed) {
-            String t1Name = ((MTNamed) t1).name;
-            MTType t1DeclaredType = getInnermostBinding1(t1Name);
-            myMatchSoFarFlag &= myTypeGraph.isSubtype(t2, t1DeclaredType);
+        if (t2 instanceof MTNamed) {
+            String t2Name = ((MTNamed) t2).name;
+            MTType t2DeclaredType = getInnermostBinding2(t2Name);
+            myMatchSoFarFlag &= myTypeGraph.isSubtype(t1, t2DeclaredType);
 
             if (myMatchSoFarFlag) {
-                myBindings.put(t1Name, t2);
+                myBindings.put(t2Name, t1);
             }
         }
         else if (t1 instanceof MTBigUnion) {

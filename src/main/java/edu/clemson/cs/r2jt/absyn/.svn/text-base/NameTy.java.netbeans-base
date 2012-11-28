@@ -1,5 +1,5 @@
 /*
- * This software is released under the new BSD 2006 license.
+ * This softare is released under the new BSD 2006 license.
  * 
  * Note the new BSD license is equivalent to the MIT License, except for the
  * no-endorsement final clause.
@@ -11,14 +11,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 
- * * Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * * Neither the name of the Clemson University nor the names of its
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
+ *   * Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer. 
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution. 
+ *   * Neither the name of the Clemson University nor the names of its
+ *     contributors may be used to endorse or promote products derived from
+ *     this software without specific prior written permission. 
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -34,22 +34,22 @@
  * 
  * This sofware has been developed by past and present members of the
  * Reusable Sofware Research Group (RSRG) in the School of Computing at
- * Clemson University. Contributors to the initial version are:
+ * Clemson University.  Contributors to the initial version are:
  * 
- * Steven Atkinson
- * Greg Kulczycki
- * Kunal Chopra
- * John Hunt
- * Heather Keown
- * Ben Markle
- * Kim Roche
- * Murali Sitaraman
+ *     Steven Atkinson
+ *     Greg Kulczycki
+ *     Kunal Chopra
+ *     John Hunt
+ *     Heather Keown
+ *     Ben Markle
+ *     Kim Roche
+ *     Murali Sitaraman
  */
 /*
- * ProgramIntegerExp.java
- * 
+ * NameTy.java
+ *
  * The Resolve Software Composition Workbench Project
- * 
+ *
  * Copyright (c) 1999-2005
  * Reusable Software Research Group
  * Department of Computer Science
@@ -59,38 +59,36 @@
 package edu.clemson.cs.r2jt.absyn;
 
 import edu.clemson.cs.r2jt.collections.List;
-import edu.clemson.cs.r2jt.collections.Map;
 import edu.clemson.cs.r2jt.data.Location;
 import edu.clemson.cs.r2jt.data.Mode;
 import edu.clemson.cs.r2jt.data.PosSymbol;
 import edu.clemson.cs.r2jt.type.Type;
 import edu.clemson.cs.r2jt.analysis.TypeResolutionException;
 
-public class ProgramIntegerExp extends ProgramExp {
+public class NameTy extends Ty {
 
     // ===========================================================
     // Variables
     // ===========================================================
 
-    /** The location member. */
-    private Location location;
+    /** The qualifier member. */
+    private PosSymbol qualifier;
 
-    /** The value member. */
-    private int value;
+    /** The name member. */
+    private PosSymbol name;
 
     // ===========================================================
     // Constructors
     // ===========================================================
 
-    public ProgramIntegerExp() {};
+    public NameTy() {};
 
-    public ProgramIntegerExp(Location location, int value) {
-        this.location = location;
-        this.value = value;
-    }
-
-    public Exp substituteChildren(java.util.Map<Exp, Exp> substitutions) {
-        return new ProgramIntegerExp(location, value);
+    public NameTy(
+            PosSymbol qualifier,
+            PosSymbol name)
+    {
+        this.qualifier = qualifier;
+        this.name = name;
     }
 
     // ===========================================================
@@ -101,29 +99,25 @@ public class ProgramIntegerExp extends ProgramExp {
     // Get Methods
     // -----------------------------------------------------------
 
-    /** Returns the value of the location variable. */
     public Location getLocation() {
-        return location;
+    	return name.getLocation();
     }
+    
+    /** Returns the value of the qualifier variable. */
+    public PosSymbol getQualifier() { return qualifier; }
 
-    /** Returns the value of the value variable. */
-    public int getValue() {
-        return value;
-    }
+    /** Returns the value of the name variable. */
+    public PosSymbol getName() { return name; }
 
     // -----------------------------------------------------------
     // Set Methods
     // -----------------------------------------------------------
 
-    /** Sets the location variable to the specified value. */
-    public void setLocation(Location location) {
-        this.location = location;
-    }
+    /** Sets the qualifier variable to the specified value. */
+    public void setQualifier(PosSymbol qualifier) { this.qualifier = qualifier; }
 
-    /** Sets the value variable to the specified value. */
-    public void setValue(int value) {
-        this.value = value;
-    }
+    /** Sets the name variable to the specified value. */
+    public void setName(PosSymbol name) { this.name = name; }
 
     // ===========================================================
     // Public Methods
@@ -131,12 +125,13 @@ public class ProgramIntegerExp extends ProgramExp {
 
     /** Accepts a ResolveConceptualVisitor. */
     public void accept(ResolveConceptualVisitor v) {
-        v.visitProgramIntegerExp(this);
+        v.visitNameTy(this);
     }
 
     /** Accepts a TypeResolutionVisitor. */
-    public Type accept(TypeResolutionVisitor v) throws TypeResolutionException {
-        return v.getProgramIntegerExpType(this);
+    public Type accept(TypeResolutionVisitor v)
+        throws TypeResolutionException {
+        return v.getNameTyType(this);
     }
 
     /** Returns a formatted text string of this class. */
@@ -145,52 +140,36 @@ public class ProgramIntegerExp extends ProgramExp {
         StringBuffer sb = new StringBuffer();
 
         printSpace(indent, sb);
-        sb.append("ProgramIntegerExp\n");
+        sb.append("NameTy\n");
 
-        printSpace(indent + increment, sb);
-        sb.append(value + "\n");
-
-        return sb.toString();
-    }
-
-    /** Returns a formatted text string of this class. */
-    public String toString(int indent) {
-
-        StringBuffer sb = new StringBuffer();
-
-        printSpace(indent, sb);
-        sb.append(value);
-
-        return sb.toString();
-    }
-
-    public Exp replace(Exp old, Exp replacement) {
-
-        if (old instanceof ProgramIntegerExp) {
-            if (((ProgramIntegerExp) old).getValue() == value) {
-                return (Exp) Exp.clone(replacement);
-            }
+        if (qualifier != null) {
+            sb.append(qualifier.asString(indent+increment,increment));
         }
 
-        return null;
-    }
+        if (name != null) {
+            sb.append(name.asString(indent+increment,increment));
+        }
 
-    /** Returns true if the variable is found in any sub expression
-        of this one. **/
-    public boolean containsVar(String varName, boolean IsOldExp) {
-        return false;
-    }
-
-    public List<Exp> getSubExpressions() {
-        return new List<Exp>();
-    }
-
-    public void setSubExpression(int index, Exp e) {
-
+        return sb.toString();
     }
     
-    public ProgramIntegerExp copy() {
-        ProgramIntegerExp result = new ProgramIntegerExp(location, value);
-        return result;
+    public void prettyPrint() {
+    	if(qualifier != null) System.out.print(qualifier.getName() + ".");
+    	System.out.print(name.getName());
     }
+    
+    public String toString(int indent) {
+    	StringBuffer sb = new StringBuffer();
+   // 	if(qualifier != null) sb.append(qualifier.getName() + ".");
+    	sb.append(name.getName());
+    	return sb.toString();
+    }
+    
+    public Ty copy() {
+    	PosSymbol newQualifier = null;
+    	if(qualifier != null) newQualifier = qualifier.copy();
+    	PosSymbol newName = name.copy();
+    	return new NameTy(newQualifier, newName);
+    }
+    
 }

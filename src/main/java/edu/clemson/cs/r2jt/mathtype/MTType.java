@@ -170,6 +170,22 @@ public abstract class MTType {
 
         return bind.getBindings();
     }
+    
+    public Map<String, MTType> bindTo(MTType template, 
+            Map<String, MTType> thisContext, 
+            Map<String, MTType> templateContext)
+            throws BindingException {
+
+        BindingVisitor bind = 
+                new BindingVisitor(myTypeGraph, thisContext, templateContext);
+        bind.visit(this, template);
+
+        if (!bind.binds()) {
+            throw new BindingException(this, template);
+        }
+
+        return bind.getBindings();
+    }
 
     public MTType getType() {
         //TODO : Each MTType should really contain it's declared type.  I.e.,
