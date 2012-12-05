@@ -166,45 +166,4 @@ public class GuidedRuleChooser extends RuleProvider {
     public int getApproximateRuleSetSize() {
         return -1;
     }
-
-    /*
-     * The GuidedRuleChooser was created to help debug the 
-     * BlindIterativeRuleChooser (and it's descendants, like 
-     * UpfrontFitnessSortRuleChooser.)  However, there are cases where
-     * GuidedRuleChooser is able to prove things that BlindIterativeRuleChooser
-     * cannot.  What follows are backups of the old methods that "do more".  In
-     * fact, the GuidedRuleChooser must do EXACTLY what 
-     * BlindIterativeRuleChooser does so it can be useful as a debuging tool.
-     * The new versions "do the same". 
-     */
-    /*
-    public void addRule(String friendlyName, Exp rule) {
-    	if (myLockedFlag) {
-    		throw new IllegalStateException();
-    	}
-    	
-    	if (rule instanceof EqualsExp) {
-    		EqualsExp equivalency = (EqualsExp) rule;
-    		
-    		if (equivalency.getOperator() == EqualsExp.EQUAL) {
-    			//Substitute right expression for left
-    			MatchReplace matcher = new BindReplace(equivalency.getLeft(),
-    					equivalency.getRight(), myTyper);
-    			myGlobalRules.add(matcher);
-    			myExpCorrespondance.add(rule);
-    			
-    			//Substitute left expression for left
-    			matcher = new BindReplace(equivalency.getRight(),
-    					equivalency.getLeft(), myTyper);
-    			myGlobalRules.add(matcher);
-    			myExpCorrespondance.add(rule);
-    		}
-    	}
-    	else {
-    		System.out.println("BlindIterativeRule.addRule --- " +
-    				"Non equals Theorem.");
-    		System.out.println(rule.toString(0));
-    	}
-    }
-     */
 }

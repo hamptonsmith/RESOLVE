@@ -25,7 +25,6 @@ public class BindReplace implements MatchReplace {
      * 
      * @param findPattern The pattern to bind with.
      * @param replacePattern The pattern to expand as a replacement.
-     * @param typer Something to help figure out types.
      */
     public BindReplace(Exp findPattern, Exp replacePattern) {
 

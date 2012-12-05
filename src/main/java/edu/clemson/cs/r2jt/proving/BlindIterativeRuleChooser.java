@@ -77,8 +77,6 @@ public class BlindIterativeRuleChooser extends RuleProvider {
 
             if (equivalency.getOperator() == EqualsExp.EQUAL) {
                 //Substitute left expression for right
-                /*MatchReplace matcher = new BindReplace(equivalency.getLeft(),
-                		equivalency.getRight(), myTyper);*/
                 myOriginalGlobalRules.add(equivalency);
                 myExpCorrespondance.add(equivalency);
 
@@ -89,8 +87,6 @@ public class BlindIterativeRuleChooser extends RuleProvider {
                 //EqualsExp inverseEquivalency = (EqualsExp) equivalency.copy();
                 inverseEquivalency.setLeft(equivalency.getRight());
                 inverseEquivalency.setRight(equivalency.getLeft());
-                /*matcher = new BindReplace(equivalency.getRight(),
-                		equivalency.getLeft(), myTyper);*/
                 myOriginalGlobalRules.add(inverseEquivalency);
                 myExpCorrespondance.add(equivalency);
             }

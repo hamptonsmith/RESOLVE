@@ -21,6 +21,7 @@ import edu.clemson.cs.r2jt.absyn.QuantExp;
 import edu.clemson.cs.r2jt.absyn.VarExp;
 import edu.clemson.cs.r2jt.collections.List;
 import edu.clemson.cs.r2jt.data.PosSymbol;
+import edu.clemson.cs.r2jt.mathtype.MTType;
 import edu.clemson.cs.r2jt.type.Type;
 
 /**
@@ -108,7 +109,6 @@ public class Utilities {
      * @param assumptions
      * @param antecedents
      * @param consequent
-     * @param typer
      * @return
      */
     private static List<Exp> applyImplicationToAssumptions(
@@ -176,7 +176,6 @@ public class Utilities {
      *                           bindings.
      * @param bindings A set of assumed bindings, reflected match choices for
      *                 antecedents before <code>curAntecedentIndex</code>.
-     * @param typer A <code>MathExpTypeResolve</code> to aid in matching types.
      * @param consequent The set of consequents in the universally quantified
      *                   implication, in which we would like to make 
      *                   replacements based on our binding.
@@ -203,9 +202,9 @@ public class Utilities {
 
             Exp curAntecedent = antecedents.get(curAntecedentIndex);
 
-            Type beforeType = curAntecedent.getType();
+            MTType beforeType = curAntecedent.getMathType();
             Exp antecedent = curAntecedent.substitute(bindings);
-            Type afterType = antecedent.getType();
+            MTType afterType = antecedent.getMathType();
 
             if (beforeType != null && afterType == null) {
                 throw new UnsupportedOperationException("Substitution failed "
@@ -363,7 +362,6 @@ public class Utilities {
      * 
      * @param pattern The pattern to attempt to bind.
      * @param e The concrete expression to attempt to bind to.
-     * @param typer Provides typing information.
      * 
      * @return A <code>Map</code> from <code>PosSymbol</code>s in the pattern
      *         to concrete <code>Exp</code>s from the expression.
@@ -379,16 +377,16 @@ public class Utilities {
 
         //We need typing information to do our job, however the Analyzer doesn't
         //work consistently.  Fail well if we can't do our job.
-        if (pattern.getType() == null || e.getType() == null) {
+        if (pattern.getMathType() == null || e.getMathType() == null) {
             if (!(e instanceof InfixExp || e instanceof BetweenExp
                     || e instanceof PrefixExp || e instanceof EqualsExp || e instanceof DotExp)) {
                 //if (!(e instanceof InfixExp || e instanceof BetweenExp)) {
                 throw new UnsupportedOperationException(
                         "Pattern or expression has null type.\n\n"
                                 + "Pattern: " + pattern + "  ("
-                                + pattern.getType() + ") " + pattern.getClass()
-                                + "\nExpression: " + e + "  (" + e.getType()
-                                + ") " + e.getClass());
+                                + pattern.getMathType() + ") "
+                                + pattern.getClass() + "\nExpression: " + e
+                                + "  (" + e.getMathType() + ") " + e.getClass());
             }
         }
 
@@ -398,7 +396,7 @@ public class Utilities {
             VarExp patternVar = (VarExp) pattern;
 
             if (patternVar.getQuantification() == QuantExp.FORALL) {
-                if (pattern.getType() != null && e.getType() != null
+                if (pattern.getMathType() != null && e.getMathType() != null
                         && e.getMathType().isSubtypeOf(pattern.getMathType())) {
 
                     retval = new HashMap<PosSymbol, Exp>();
@@ -410,19 +408,21 @@ public class Utilities {
                             + "Cannot bind " + patternVar + " with " + e
                             + " because:");
 
-                    if (pattern.getType() == null || e.getType() == null) {
-                        if (pattern.getType() == null) {
+                    if (pattern.getMathType() == null
+                            || e.getMathType() == null) {
+                        if (pattern.getMathType() == null) {
                             System.out.println("\t" + patternVar
                                     + "'s type is null.");
                         }
-                        if (e.getType() == null) {
+                        if (e.getMathType() == null) {
                             System.out.println("\t" + e + "'s type is null.");
                         }
                     }
                     else if (!e.getMathType()
                             .isSubtypeOf(pattern.getMathType())) {
-                        System.out.println("\tType " + pattern.getType()
-                                + " does not match type " + e.getType() + ".");
+                        System.out.println("\tType " + pattern.getMathType()
+                                + " does not match type " + e.getMathType()
+                                + ".");
                     }
                 }
             }
@@ -431,7 +431,7 @@ public class Utilities {
                     System.out.println("Utilities.bind");
                 }
 
-                if (pattern.getType() != null && e.getType() != null
+                if (pattern.getMathType() != null && e.getMathType() != null
                         && e.getMathType().isSubtypeOf(pattern.getMathType())) {
 
                     if (e instanceof VarExp) {
@@ -460,8 +460,8 @@ public class Utilities {
                 FunctionExp eFunction = (FunctionExp) e;
 
                 if (patternFunction.getQuantification() == QuantExp.FORALL) {
-                    if (pattern.getType() != null
-                            && e.getType() != null
+                    if (pattern.getMathType() != null
+                            && e.getMathType() != null
                             && e.getMathType().isSubtypeOf(
                                     pattern.getMathType())) {
 
@@ -473,7 +473,9 @@ public class Utilities {
                                     new VarExp(eFunction.getLocation(),
                                             eFunction.getQualifier(), eFunction
                                                     .getName());
-                            functionName.setType(eFunction.getType());
+                            functionName.setMathType(eFunction.getMathType());
+                            functionName.setMathTypeValue(eFunction
+                                    .getMathTypeValue());
 
                             retval.put(patternFunction.getName(), functionName);
                         }
@@ -606,16 +608,16 @@ public class Utilities {
 
         //We need typing information to do our job, however the Analyzer doesn't
         //work consistently.  Fail well if we can't do our job.
-        if (pattern.getType() == null || e.getType() == null) {
+        if (pattern.getMathType() == null || e.getMathType() == null) {
             if (!(e instanceof InfixExp || e instanceof BetweenExp
                     || e instanceof PrefixExp || e instanceof EqualsExp || e instanceof EqualsExp)) {
                 //if (!(e instanceof InfixExp || e instanceof BetweenExp)) {
                 throw new UnsupportedOperationException(
                         "Pattern or expression has null type.\n\n"
                                 + "Pattern: " + pattern + "  ("
-                                + pattern.getType() + ") " + pattern.getClass()
-                                + "\nExpression: " + e + "  (" + e.getType()
-                                + ") " + e.getClass());
+                                + pattern.getMathType() + ") "
+                                + pattern.getClass() + "\nExpression: " + e
+                                + "  (" + e.getMathType() + ") " + e.getClass());
             }
         }
 
@@ -625,7 +627,7 @@ public class Utilities {
             VarExp patternVar = (VarExp) pattern;
 
             if (patternVar.getQuantification() == QuantExp.FORALL) {
-                if (pattern.getType() != null && e.getType() != null
+                if (pattern.getMathType() != null && e.getMathType() != null
                         && e.getMathType().isSubtypeOf(pattern.getMathType())) {
 
                     retval = new HashMap<Exp, Exp>();
@@ -637,19 +639,21 @@ public class Utilities {
                             + "Cannot bind " + patternVar + " with " + e
                             + " because:");
 
-                    if (pattern.getType() == null || e.getType() == null) {
-                        if (pattern.getType() == null) {
+                    if (pattern.getMathType() == null
+                            || e.getMathType() == null) {
+                        if (pattern.getMathType() == null) {
                             System.out.println("\t" + patternVar
                                     + "'s type is null.");
                         }
-                        if (e.getType() == null) {
+                        if (e.getMathType() == null) {
                             System.out.println("\t" + e + "'s type is null.");
                         }
                     }
                     else if (!e.getMathType()
                             .isSubtypeOf(pattern.getMathType())) {
-                        System.out.println("\tType " + pattern.getType()
-                                + " does not match type " + e.getType() + ".");
+                        System.out.println("\tType " + pattern.getMathType()
+                                + " does not match type " + e.getMathType()
+                                + ".");
                     }
                 }
             }
@@ -658,7 +662,7 @@ public class Utilities {
                     System.out.println("Utilities.bind");
                 }
 
-                if (pattern.getType() != null && e.getType() != null
+                if (pattern.getMathType() != null && e.getMathType() != null
                         && e.getMathType().isSubtypeOf(pattern.getMathType())) {
 
                     if (e instanceof VarExp) {
@@ -687,8 +691,8 @@ public class Utilities {
                 FunctionExp eFunction = (FunctionExp) e;
 
                 if (patternFunction.getQuantification() == QuantExp.FORALL) {
-                    if (pattern.getType() != null
-                            && e.getType() != null
+                    if (pattern.getMathType() != null
+                            && e.getMathType() != null
                             && e.getMathType().isSubtypeOf(
                                     pattern.getMathType())) {
 
@@ -700,7 +704,9 @@ public class Utilities {
                                     new VarExp(eFunction.getLocation(),
                                             eFunction.getQualifier(), eFunction
                                                     .getName());
-                            functionName.setType(eFunction.getType());
+                            functionName.setMathType(eFunction.getMathType());
+                            functionName.setMathTypeValue(eFunction
+                                    .getMathTypeValue());
 
                             retval.put(patternFunction, functionName);
                         }
@@ -828,7 +834,6 @@ public class Utilities {
      * <p>(TODO) See note at newBind.</p>
      * @param pattern
      * @param e
-     * @param typer
      * @return
      */
     private static Map<Exp, Exp> newBindSubExpressions(Exp pattern, Exp e) {

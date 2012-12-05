@@ -224,19 +224,6 @@ public final class Prover {
      * </p>
      */
     private ProofProgressWindow myProgressWindow;
-    /**
-     * <p>
-     * The current RESOLVE environment, from which we can get information on the
-     * file structure and available modules. This is particularly useful in this
-     * class for tracking down mathematical theories associated with various
-     * types.
-     * </p>
-     * 
-     * <p>
-     * INVARIANT: <code>myResolveEnvironment != null</code>
-     * </p>
-     */
-    //private final Environment myResolveEnvironment = Environment.getInstance();
 
     /**
      * <p>
@@ -903,7 +890,6 @@ public final class Prover {
 
     private VCProver setUpOldProver(VerificationCondition vc) {
         BlindIterativeRuleChooser baseChooser =
-        // new BlindIterativeRuleChooser(myTyper);
                 new UpfrontFitnessSortRuleChooser(new SimpleFitnessFunction(),
                         0);
         baseChooser.addRules(myTheoremNames, myTheorems);

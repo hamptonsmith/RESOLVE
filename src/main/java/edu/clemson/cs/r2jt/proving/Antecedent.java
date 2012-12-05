@@ -149,7 +149,6 @@ public class Antecedent extends ImmutableConjuncts {
      *                           bindings.
      * @param bindings A set of assumed bindings, reflected match choices for
      *                 antecedents before <code>curAntecedentIndex</code>.
-     * @param typer A <code>MathExpTypeResolve</code> to aid in matching types.
      * @param consequent The set of consequents in the universally quantified
      *                   implication, in which we would like to make 
      *                   replacements based on our binding.
