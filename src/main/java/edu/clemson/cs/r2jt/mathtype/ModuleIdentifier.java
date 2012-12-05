@@ -2,6 +2,7 @@ package edu.clemson.cs.r2jt.mathtype;
 
 import edu.clemson.cs.r2jt.absyn.ModuleDec;
 import edu.clemson.cs.r2jt.absyn.UsesItem;
+import edu.clemson.cs.r2jt.data.ModuleID;
 
 /**
  * <p>Identifies a particular module unambiguously.</p>
@@ -23,6 +24,10 @@ public class ModuleIdentifier implements Comparable<ModuleIdentifier> {
     private ModuleIdentifier() {
         myName = "GLOBAL";
         myGlobalFlag = true;
+    }
+
+    public ModuleIdentifier(ModuleID mid) {
+        this(mid.getName().getName());
     }
 
     public ModuleIdentifier(ModuleDec m) {

@@ -464,15 +464,19 @@ public class Verifier extends ResolveConceptualVisitor {
                 ConcType tmp = (ConcType) tmpObj;
                 VarExp tmpVarExp = new VarExp();
                 tmpVarExp.setName(tmp.getName());
-                
+
                 VarExp repVarExp = new VarExp();
                 tmp = NQV(finalConf, tmp, assertion);
                 repVarExp.setName(tmp.getName());
-                
+
+                MTType tmpType = MTType.fromOldType(tmp, myRealSymbolTable);
+                tmpVarExp.setMathType(tmpType);
+                repVarExp.setMathType(tmpType);
+
                 if (tmp.getType() instanceof NewType) {
-                    MTType tmpNewType = 
+                    MTType tmpNewType =
                             ((NewType) tmp.getType()).getWrappedType();
-                    
+
                     tmpVarExp.setMathType(tmpNewType);
                     repVarExp.setMathType(tmpNewType);
                 }
@@ -6513,7 +6517,8 @@ public class Verifier extends ResolveConceptualVisitor {
                 specVarExp = new VarExp();
                 ((VarExp) specVarExp).setName(specVar.getName());
                 ((VarExp) specVarExp).setMathType(realVar.getMathType());
-                ((VarExp) specVarExp).setMathTypeValue(realVar.getMathTypeValue());
+                ((VarExp) specVarExp).setMathTypeValue(realVar
+                        .getMathTypeValue());
 
                 replace = getReplacement(realVar, assertion);
 
@@ -6823,10 +6828,10 @@ public class Verifier extends ResolveConceptualVisitor {
                             quesVar = new VarExp();
                             ((VarExp) quesVar).setName(quesSV.getName());
                             ((VarExp) quesVar).setType(quesSV.getType());
-                            ((VarExp) quesVar).setMathType(
-                                    realVar.getMathType());
-                            ((VarExp) quesVar).setMathTypeValue(
-                                    realVar.getMathTypeValue());
+                            ((VarExp) quesVar).setMathType(realVar
+                                    .getMathType());
+                            ((VarExp) quesVar).setMathTypeValue(realVar
+                                    .getMathTypeValue());
                         }
 
                         assertion.addFreeVar(quesSV);

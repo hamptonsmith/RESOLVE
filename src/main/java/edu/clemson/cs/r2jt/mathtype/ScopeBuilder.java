@@ -205,7 +205,7 @@ public class ScopeBuilder extends SyntacticScope {
 
         MathSymbolEntry entry =
                 new MathSymbolEntry(myTypeGraph, name, q, definingElement,
-                        type, typeValue, schematicTypes, 
+                        type, typeValue, schematicTypes,
                         genericsInDefiningContext, myRootModule);
 
         myBindings.put(name, entry);

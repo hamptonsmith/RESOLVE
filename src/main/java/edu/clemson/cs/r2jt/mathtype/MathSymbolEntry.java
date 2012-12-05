@@ -31,7 +31,7 @@ public class MathSymbolEntry extends SymbolTableEntry {
      */
     private final Map<String, MTType> mySchematicTypes =
             new HashMap<String, MTType>();
-    
+
     private final Map<String, MTType> myGenericsInDefiningContext =
             new HashMap<String, MTType>();
 
@@ -54,16 +54,16 @@ public class MathSymbolEntry extends SymbolTableEntry {
             Map<String, MTType> genericsInDefiningContext,
             ModuleIdentifier sourceModule) {
         super(name, definingElement, sourceModule);
-        
+
         if (genericsInDefiningContext != null) {
             mySchematicTypes.putAll(genericsInDefiningContext);
             myGenericsInDefiningContext.putAll(genericsInDefiningContext);
         }
-        
+
         if (schematicTypes != null) {
             mySchematicTypes.putAll(schematicTypes);
         }
-        
+
         myType = type;
         myQuantification = q;
         if (typeValue != null) {
@@ -126,9 +126,8 @@ public class MathSymbolEntry extends SymbolTableEntry {
      * @return
      * @throws NoSolutionException 
      */
-    public MathSymbolEntry deschematize(List<Exp> arguments, 
-            Scope callingContext)
-            throws NoSolutionException {
+    public MathSymbolEntry deschematize(List<Exp> arguments,
+            Scope callingContext) throws NoSolutionException {
 
         if (!(myType instanceof MTFunction)) {
             throw new NoSolutionException();
@@ -142,20 +141,20 @@ public class MathSymbolEntry extends SymbolTableEntry {
         }
 
         List<ProgramTypeEntry> callingContextProgramGenerics =
-                    callingContext.query(GenericQuery.INSTANCE);        
-        Map<String, MTType> callingContextMathGenerics = 
+                callingContext.query(GenericQuery.INSTANCE);
+        Map<String, MTType> callingContextMathGenerics =
                 new HashMap<String, MTType>();
-        
+
         MathSymbolEntry mathGeneric;
         for (ProgramTypeEntry e : callingContextProgramGenerics) {
             //This guaranteed not to fail--all program types can be coerced to
             //math types, so the passed location is irrelevant
             mathGeneric = e.toMathSymbolEntry(null);
-            
-            callingContextMathGenerics.put(mathGeneric.getName(), 
+
+            callingContextMathGenerics.put(mathGeneric.getName(),
                     mathGeneric.myType);
         }
-        
+
         Iterator<Exp> argumentIter = arguments.iterator();
         Map<String, MTType> bindingsSoFar = new HashMap<String, MTType>();
         Map<String, MTType> iterationBindings;
@@ -173,7 +172,7 @@ public class MathSymbolEntry extends SymbolTableEntry {
                 if (containsSchematicType(formalParameterType)) {
                     iterationBindings =
                             argumentType.bindTo(formalParameterType,
-                                    callingContextMathGenerics, 
+                                    callingContextMathGenerics,
                                     mySchematicTypes);
                     bindingsSoFar.putAll(iterationBindings);
                 }
@@ -291,16 +290,16 @@ public class MathSymbolEntry extends SymbolTableEntry {
             myTypeValue.accept(typeValueSubstitutor);
             instantiatedTypeValue = typeValueSubstitutor.getFinalExpression();
         }
-        
-        Map<String, MTType> newGenericsInDefiningContext = 
+
+        Map<String, MTType> newGenericsInDefiningContext =
                 new HashMap<String, MTType>(myGenericsInDefiningContext);
         newGenericsInDefiningContext.keySet().removeAll(
                 genericInstantiations.keySet());
-        
+
         return new MathSymbolEntry(myType.getTypeGraph(), getName(),
                 getQuantification(), getDefiningElement(), typeSubstitutor
                         .getFinalExpression(), instantiatedTypeValue,
-                mySchematicTypes, newGenericsInDefiningContext, 
+                mySchematicTypes, newGenericsInDefiningContext,
                 getSourceModuleIdentifier());
     }
 }

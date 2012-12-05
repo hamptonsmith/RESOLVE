@@ -4,6 +4,14 @@ import java.util.List;
 import java.util.Map;
 
 import edu.clemson.cs.r2jt.absyn.Exp;
+import edu.clemson.cs.r2jt.data.ModuleID;
+import edu.clemson.cs.r2jt.data.PosSymbol;
+import edu.clemson.cs.r2jt.mathtype.MathSymbolTable.FacilityStrategy;
+import edu.clemson.cs.r2jt.mathtype.MathSymbolTable.ImportStrategy;
+import edu.clemson.cs.r2jt.type.ConcType;
+import edu.clemson.cs.r2jt.type.FormalType;
+import edu.clemson.cs.r2jt.type.NewType;
+import edu.clemson.cs.r2jt.type.Type;
 import edu.clemson.cs.r2jt.typereasoning.TypeGraph;
 
 /**
@@ -15,6 +23,28 @@ public abstract class MTType {
 
     public MTType(TypeGraph typeGraph) {
         myTypeGraph = typeGraph;
+    }
+
+    public static MTType fromOldType(Type oldType, ScopeRepository repo) {
+        MTType result;
+
+        if (oldType instanceof NewType) {
+            result = ((NewType) oldType).getWrappedType();
+        }
+        else if (oldType instanceof ConcType) {
+            result = fromOldType(((ConcType) oldType).getType(), repo);
+        }
+        else if (oldType instanceof FormalType) {
+            FormalType formal = (FormalType) oldType;
+            result =
+                    new MTNamed(repo.getTypeGraph(), formal.getName().getName());
+        }
+        else {
+            throw new RuntimeException("Don't know how to convert type: "
+                    + oldType + " (" + oldType.getClass() + ")");
+        }
+
+        return result;
     }
 
     public TypeGraph getTypeGraph() {
@@ -170,13 +200,12 @@ public abstract class MTType {
 
         return bind.getBindings();
     }
-    
-    public Map<String, MTType> bindTo(MTType template, 
-            Map<String, MTType> thisContext, 
-            Map<String, MTType> templateContext)
+
+    public Map<String, MTType> bindTo(MTType template,
+            Map<String, MTType> thisContext, Map<String, MTType> templateContext)
             throws BindingException {
 
-        BindingVisitor bind = 
+        BindingVisitor bind =
                 new BindingVisitor(myTypeGraph, thisContext, templateContext);
         bind.visit(this, template);
 

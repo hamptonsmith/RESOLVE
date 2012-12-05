@@ -2293,7 +2293,6 @@ infix_expression returns [Exp exp = null]
         )
         { $exp = new InfixExp(getLocation($id), $lf1.exp, getPosSymbol($id), $rt.exp); }
         )
-    |   id=BOOLEAN { $exp = new VarExp(getLocation($id), null, getPosSymbol($id), BooleanType.INSTANCE); }
     ;
 
 type_assertion_expression returns [Exp exp = null]
@@ -2305,7 +2304,7 @@ type_assertion_expression returns [Exp exp = null]
 
 function_type_expression returns [Exp exp]
     :  left=adding_expression { $exp = $left.exp; }
-    |  ^(id=FUNCARROW left=adding_expression right=function_expression) //Right associate
+    |  ^(id=FUNCARROW left=adding_expression right=function_type_expression) //Right associate
        { $exp = new InfixExp(getLocation($id), $left.exp, getPosSymbol($id), 
                              $right.exp); } 
     ;
@@ -2491,7 +2490,8 @@ literal_expression returns [Exp exp = null]
     Character ch = null;
     String str = null;
 }
-    :   exp1=qualified_numeric_literal
+    :   id=BOOLEAN { $exp = new VarExp(getLocation($id), null, getPosSymbol($id), BooleanType.INSTANCE); }
+    |   exp1=qualified_numeric_literal
     |   NUMERIC_LITERAL
         {   str = $NUMERIC_LITERAL.getText();
             if (str.indexOf('.') == -1) { // a dot does not appear

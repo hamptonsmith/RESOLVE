@@ -1720,8 +1720,7 @@ infix_expression returns [ColsAST ast = null]
             |   FREE_OPERATOR^
             )
             type_assertion_expression
-        )?)
-    | BOOLEAN;
+        )?);
 
 type_assertion_expression
     : function_type_expression (COLON math_type_expression)?;
@@ -1869,7 +1868,8 @@ lambda_expression
 
 literal_expression
     //:   (ident DOT) => qualified_numeric_literal
-    :   NUMERIC_LITERAL
+    :   BOOLEAN
+    |   NUMERIC_LITERAL
     |   CHARACTER_LITERAL
     |   STRING_LITERAL
     ;

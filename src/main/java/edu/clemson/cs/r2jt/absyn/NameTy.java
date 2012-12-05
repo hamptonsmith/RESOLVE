@@ -178,7 +178,7 @@ public class NameTy extends Ty {
         Ty result = new NameTy(newQualifier, newName);
         result.setMathType(getMathType());
         result.setMathTypeValue(getMathTypeValue());
-        
+
         return result;
     }
 

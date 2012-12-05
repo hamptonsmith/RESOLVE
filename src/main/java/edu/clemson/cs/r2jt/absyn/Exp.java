@@ -524,10 +524,7 @@ public abstract class Exp extends ResolveConceptualElement implements Cloneable 
 
         Exp result = exp.copy();
 
-        if (originalType != null) {
-            result.setMathType(originalType);
-        }
-        
+        result.setMathType(originalType);
         result.setMathTypeValue(originalTypeValue);
         result.setLocation(originalLocation);
 

@@ -527,9 +527,9 @@ public class ProgramExpTypeResolver extends TypeResolutionVisitor {
                     exp.getArguments().get(0));
         }
         else {
-            ProgramFunctionExp result =  
+            ProgramFunctionExp result =
                     new ProgramFunctionExp(exp.getLocation(), qual, exp
-                        .getName(), exp.getArguments());
+                            .getName(), exp.getArguments());
             result.setMathType(exp.getMathType());
             result.setMathTypeValue(exp.getMathTypeValue());
             result.setProgramType(exp.getProgramType());

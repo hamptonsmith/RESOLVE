@@ -28,7 +28,7 @@ public class BindingVisitor extends SymmetricBoundVariableVisitor {
         super(concreteContext);
         myTypeGraph = g;
     }
-    
+
     public BindingVisitor(TypeGraph g, Map<String, MTType> concreteContext,
             Map<String, MTType> templateContext) {
         super(concreteContext, templateContext);
@@ -51,7 +51,7 @@ public class BindingVisitor extends SymmetricBoundVariableVisitor {
         //Fine if the declared type of t1 restricts the declared type of t2
         myMatchSoFarFlag &=
                 myTypeGraph.isSubtype(t1DeclaredType, t2DeclaredType);
-        
+
         if (myMatchSoFarFlag) {
             myBindings.put(t2.name, t1);
         }

@@ -527,6 +527,14 @@ public class MathPopulator extends TreeWalkerVisitor {
         MTType mathTypeValue = node.getTy().getMathTypeValue();
         String varName = node.getName().getName();
 
+        if (myCurrentDirectDefinition != null
+                && mathTypeValue.isKnownToContainOnlyMTypes()
+                && myDefinitionNamedTypes.contains(varName)) {
+            throw new SourceErrorException("Introduction of type parameter "
+                    + "must precede any use of that variable name.", node
+                    .getLocation());
+        }
+
         node.setMathType(mathTypeValue);
 
         SymbolTableEntry.Quantification q =
@@ -677,7 +685,7 @@ public class MathPopulator extends TreeWalkerVisitor {
                         //before the parameter is declared
                         throw new SourceErrorException("Introduction of "
                                 + "implicit type parameter must precede any "
-                                + "of that variable name.", nodeExp
+                                + "use of that variable name.", nodeExp
                                 .getLocation());
                     }
 
@@ -993,18 +1001,8 @@ public class MathPopulator extends TreeWalkerVisitor {
     }
 
     @Override
-    public void preProgramFunctionExp(ProgramFunctionExp node) {
-        System.out.println("poop");
-    }
-
-    @Override
-    public void preWhileStmt(WhileStmt data) {
-        System.out.println("boobs");
-    }
-    
-    @Override
     public void postExp(Exp node) {
-        
+
         //myMathModeFlag && 
         if (node.getMathType() == null) {
             throw new RuntimeException("Exp " + node + " (" + node.getClass()
@@ -1180,7 +1178,7 @@ public class MathPopulator extends TreeWalkerVisitor {
         if (type != null) {
             try {
                 return myBuilder.getInnermostActiveScope().addBinding(name, q,
-                        definingElement, type, typeValue, schematicTypes, 
+                        definingElement, type, typeValue, schematicTypes,
                         myGenericTypes);
             }
             catch (DuplicateSymbolException dse) {
@@ -1467,8 +1465,9 @@ public class MathPopulator extends TreeWalkerVisitor {
             if (candidate.getType() instanceof MTFunction) {
 
                 try {
-                    candidate = candidate.deschematize(e.getParameters(), 
-                            myBuilder.getInnermostActiveScope());
+                    candidate =
+                            candidate.deschematize(e.getParameters(), myBuilder
+                                    .getInnermostActiveScope());
                     candidateType = (MTFunction) candidate.getType();
                     emitDebug(candidate.getType() + " deschematizes to "
                             + candidateType);

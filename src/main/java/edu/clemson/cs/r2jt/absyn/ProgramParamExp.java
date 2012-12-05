@@ -276,12 +276,12 @@ public class ProgramParamExp extends ProgramExp {
     }
 
     public ProgramParamExp copy() {
-        ProgramParamExp result = 
+        ProgramParamExp result =
                 new ProgramParamExp(location, name, arguments, semanticExp);
-        
+
         result.setType(getType());
-        
+
         return result;
     }
-    
+
 }
