@@ -181,7 +181,7 @@ public abstract class Exp extends ResolveConceptualElement implements Cloneable 
                 retval = curEntry.getValue();
             }
             else {
-                retval = substituteChildren(substitutions);
+                retval = Exp.substituteChildren(this, substitutions);
             }
         }
         else {
@@ -189,6 +189,27 @@ public abstract class Exp extends ResolveConceptualElement implements Cloneable 
         }
 
         return retval;
+    }
+
+    //XXX : For the benefit of making the old prover work with the new type
+    //      system, we make the assumption that performing substitutions does
+    //      not change the type of the expression.  In general, this is a 
+    //      terrible assumption, but it shouldn't cause any unsoundness in the
+    //      examples we're looking at.  When the new prover is ready, this
+    //      method will become unnecessary, because substitutions will occur
+    //      on PExps rather than Exps.
+    public static final Exp substituteChildren(Exp target,
+            java.util.Map<Exp, Exp> substitutions) {
+
+        MTType originalType = target.getMathType();
+        MTType originalTypeValue = target.getMathTypeValue();
+
+        Exp result = target.substituteChildren(substitutions);
+
+        result.setMathType(originalType);
+        result.setMathTypeValue(originalTypeValue);
+
+        return result;
     }
 
     public final Exp substituteNames(java.util.Map<String, Exp> substitutions) {

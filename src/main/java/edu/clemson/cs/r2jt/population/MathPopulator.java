@@ -24,7 +24,7 @@ import java.util.Set;
 
 public class MathPopulator extends TreeWalkerVisitor {
 
-    private static final boolean PRINT_DEBUG = true;
+    private static final boolean PRINT_DEBUG = false;
 
     private static final TypeComparison<AbstractFunctionExp, MTFunction> EXACT_DOMAIN_MATCH =
             new ExactDomainMatch();
@@ -740,6 +740,7 @@ public class MathPopulator extends TreeWalkerVisitor {
         if (listVarDec != null) {
             declaredType = new MTFunction(myTypeGraph, node);
         }
+        
         String definitionSymbol = node.getName().getName();
 
         MTType typeValue = null;
@@ -999,7 +1000,7 @@ public class MathPopulator extends TreeWalkerVisitor {
     public void preExp(Exp node) {
         myExpressionDepth++;
     }
-
+    
     @Override
     public void postExp(Exp node) {
 

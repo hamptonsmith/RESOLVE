@@ -105,7 +105,8 @@ public class TypeGraph {
 
         try {
             result =
-                    subtype.equals(supertype)
+                    supertype.equals(ENTITY) || supertype.equals(MTYPE)
+                            || subtype.equals(supertype)
                             || subtype.isSyntacticSubtypeOf(supertype);
         }
         catch (NoSuchElementException nsee) {

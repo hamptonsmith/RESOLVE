@@ -10,8 +10,6 @@ public class AlphaEquivalencyChecker extends SymmetricBoundVariableVisitor {
         //variable
 
         if (!t1.name.equals(t2.name)) {
-            System.out.println(t1.name + ", " + t2.name);
-
             MTType t1Value = null;
             MTType t2Value = null;
             try {

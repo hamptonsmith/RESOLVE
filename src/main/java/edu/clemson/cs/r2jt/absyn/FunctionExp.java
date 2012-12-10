@@ -317,14 +317,15 @@ public class FunctionExp extends AbstractFunctionExp {
 
         VarExp newName = new VarExp(location, qualifier, name, quantification);
 
-        try {
-            newName = (VarExp) newName.substitute(substitutions);
-        }
-        catch (ClassCastException e) {
-            //There really is no good reason that this shouldn't be able to 
-            //happen--we're just completely unable to deal with it if it does
-            //under this architecture.  So we'll fail fast.
-            throw new RuntimeException(e);
+        if (substitutions.containsKey(newName)) {
+            //Note that there's no particular mathematical justification why
+            //we can only replace a function with a different function NAME (as
+            //opposed to a function-valued expression), but we have no way of
+            //representing such a thing.  It doesn't tend to come up, but if it
+            //ever did, this would throw a ClassCastException.
+            newName =
+                    new VarExp(location, qualifier, ((VarExp) substitutions
+                            .get(newName)).getName(), quantification);
         }
 
         retval =
