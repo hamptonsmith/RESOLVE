@@ -1979,6 +1979,11 @@ public class Verifier extends ResolveConceptualVisitor {
                     new ConcType(curr.getModuleID(), name, (TupleType) type);
             return tmp;
         }
+        else if (type instanceof NewType) {
+            ConcType tmp =
+                    new ConcType(curr.getModuleID(), name, type);
+            return tmp;
+        }
 
         return null;
     }
@@ -4277,41 +4282,8 @@ public class Verifier extends ResolveConceptualVisitor {
         else {
             return null;
         }
-        Binding binding = curr.getBinding();
-
-        if (varTy instanceof NameTy) {
-            Symbol name = null, qual = null;
-            if (((NameTy) varTy).getName() != null)
-                name = ((NameTy) varTy).getName().getSymbol();
-            if (((NameTy) varTy).getQualifier() != null)
-                qual = ((NameTy) varTy).getQualifier().getSymbol();
-
-            ModuleScope modSc = getTypeModuleScope(qual, name);
-            if (modSc != null)
-                type = modSc.getType(name).getType();
-
-        }
-
-        if (type == null) {
-            TypeConverter TC =
-                    new TypeConverter(myInstanceEnvironment
-                            .getSymbolTable(getCurrentModuleID()));
-
-            if (type == null)
-                type = TC.getMathType(varTy);
-
-            if (type == null && varTy instanceof NameTy) {
-                Boolean cont = binding.contains(((NameTy) varTy).getName());
-                if (cont) {
-                    type = binding.getType(null, ((NameTy) varTy).getName());
-                    //	return convertToConcType(var.getName(), type);
-                }
-            }
-
-            if (type == null) {
-                type = TC.getProgramType(varTy);
-            }
-        }
+        
+        type = new NewType(varTy.getMathTypeValue());
 
         return convertToConcType(var.getName(), type);
     }
