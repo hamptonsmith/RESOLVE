@@ -1980,8 +1980,7 @@ public class Verifier extends ResolveConceptualVisitor {
             return tmp;
         }
         else if (type instanceof NewType) {
-            ConcType tmp =
-                    new ConcType(curr.getModuleID(), name, type);
+            ConcType tmp = new ConcType(curr.getModuleID(), name, type);
             return tmp;
         }
 
@@ -4282,7 +4281,7 @@ public class Verifier extends ResolveConceptualVisitor {
         else {
             return null;
         }
-        
+
         type = new NewType(varTy.getMathTypeValue());
 
         return convertToConcType(var.getName(), type);

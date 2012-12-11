@@ -102,7 +102,7 @@ public class GuidedListSelectIterator<T> extends JDialog implements Iterator<T> 
         }
 
         myNextReturnedFlag = true;
-        
+
         return mySelection;
     }
 

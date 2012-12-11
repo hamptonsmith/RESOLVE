@@ -740,7 +740,7 @@ public class MathPopulator extends TreeWalkerVisitor {
         if (listVarDec != null) {
             declaredType = new MTFunction(myTypeGraph, node);
         }
-        
+
         String definitionSymbol = node.getName().getName();
 
         MTType typeValue = null;
@@ -1000,7 +1000,7 @@ public class MathPopulator extends TreeWalkerVisitor {
     public void preExp(Exp node) {
         myExpressionDepth++;
     }
-    
+
     @Override
     public void postExp(Exp node) {
 
