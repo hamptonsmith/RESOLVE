@@ -251,7 +251,26 @@ public class Controller {
             else {
                 myArchive = null;
             }
-            compileNewTargetSource(inputFile, symbolTable);
+
+            try {
+                compileNewTargetSource(inputFile, symbolTable);
+            }
+            catch (Exception ex) {
+                Throwable cause = ex;
+                while (cause != null
+                        && !(cause instanceof SourceErrorException)) {
+                    cause = cause.getCause();
+                }
+
+                if (cause != null) {
+                    SourceErrorException see = (SourceErrorException) cause;
+                    err.error(see.getErrorLocation(), see.getMessage());
+                }
+                else {
+                    BugReport.abortProgram(ex, myInstanceEnvironment);
+                    myCompileReport.setError();
+                }
+            }
             //compileNewTargetFile(file);
             if (myInstanceEnvironment.flags.isFlagSet(Archiver.FLAG_ARCHIVE)) {
                 //arc.printArchiveList();
@@ -392,7 +411,7 @@ public class Controller {
     }
 
     private void compileNewTargetFile(File file,
-            MathSymbolTableBuilder symbolTable) {
+            MathSymbolTableBuilder symbolTable) throws Exception {
         //private File compileNewTargetFile(File file) {
         //long start = System.currentTimeMillis();
         try {
@@ -470,27 +489,13 @@ public class Controller {
             myInstanceEnvironment.abortCompile(file);
             myCompileReport.setError();
         }
-        catch (Exception ex) {
-            Throwable cause = ex;
-            while (cause != null && !(cause instanceof SourceErrorException)) {
-                cause = cause.getCause();
-            }
 
-            if (cause != null) {
-                SourceErrorException see = (SourceErrorException) cause;
-                err.error(see.getErrorLocation(), see.getMessage());
-            }
-            else {
-                BugReport.abortProgram(ex, myInstanceEnvironment);
-                myCompileReport.setError();
-            }
-        }
         //long end = System.currentTimeMillis();
         //System.out.println("Execution time: " + (end - start) + " ms");
     }
 
     private void compileNewTargetSource(MetaFile inputFile,
-            MathSymbolTableBuilder symbolTable) {
+            MathSymbolTableBuilder symbolTable) throws Exception {
         //private File compileNewTargetFile(File file) {
         //long start = System.currentTimeMillis();CharStream cs = null;
         File file = null;
@@ -596,21 +601,7 @@ public class Controller {
             myInstanceEnvironment.abortCompile(file);
             myCompileReport.setError();
         }
-        catch (Exception ex) {
-            Throwable cause = ex;
-            while (cause != null && !(cause instanceof SourceErrorException)) {
-                cause = cause.getCause();
-            }
 
-            if (cause != null) {
-                SourceErrorException see = (SourceErrorException) cause;
-                err.error(see.getErrorLocation(), see.getMessage());
-            }
-            else {
-                BugReport.abortProgram(ex, myInstanceEnvironment);
-                myCompileReport.setError();
-            }
-        }
         //long end = System.currentTimeMillis();
         //System.out.println("Execution time: " + (end - start) + " ms");
     }
@@ -763,7 +754,8 @@ public class Controller {
     // Import Module Compilation Methods
     // -----------------------------------------------------------
 
-    private void compileImportFile(File file, MathSymbolTableBuilder symbolTable) {
+    private void compileImportFile(File file, MathSymbolTableBuilder symbolTable)
+            throws Exception {
         if (myInstanceEnvironment.compileCompleted(file)) {
             if (myInstanceEnvironment.flags
                     .isFlagSet(ResolveCompiler.FLAG_NO_DEBUG)) {
@@ -784,7 +776,7 @@ public class Controller {
     }
 
     private void compileNewImportFile(File file,
-            MathSymbolTableBuilder symbolTable) {
+            MathSymbolTableBuilder symbolTable) throws Exception {
         try {
             myInstanceEnvironment.setCurrentTargetFileName(file.getName());
             ModuleDec dec = buildModuleDec(file);
@@ -836,26 +828,10 @@ public class Controller {
         catch (CompilerException cex) {
             myInstanceEnvironment.abortCompile(file);
         }
-        catch (Exception ex) {
-            Throwable cause = ex;
-            while (cause != null && !(cause instanceof SourceErrorException)) {
-                cause = cause.getCause();
-            }
-
-            if (cause != null) {
-                SourceErrorException see = (SourceErrorException) cause;
-                err.error(see.getErrorLocation(), see.getMessage());
-            }
-            else {
-                BugReport.abortProgram(ex, myInstanceEnvironment);
-                myCompileReport.setError();
-            }
-        }
-        finally {}
     }
 
     private void compileNewImportSource(String name, MetaFile importFile,
-            MathSymbolTableBuilder symbolTable) {
+            MathSymbolTableBuilder symbolTable) throws Exception {
         try {
             myInstanceEnvironment.setCurrentTargetFileName(name);
             String fileSource = importFile.getMyFileSource();
@@ -918,22 +894,6 @@ public class Controller {
         catch (CompilerException cex) {
             //myInstanceEnvironment.abortCompile(file);
         }
-        catch (Exception ex) {
-            Throwable cause = ex;
-            while (cause != null && !(cause instanceof SourceErrorException)) {
-                cause = cause.getCause();
-            }
-
-            if (cause != null) {
-                SourceErrorException see = (SourceErrorException) cause;
-                err.error(see.getErrorLocation(), see.getMessage());
-            }
-            else {
-                BugReport.abortProgram(ex, myInstanceEnvironment);
-                myCompileReport.setError();
-            }
-        }
-        finally {}
     }
 
     // -----------------------------------------------------------
@@ -1055,7 +1015,7 @@ public class Controller {
     // -----------------------------------------------------------
 
     private void compileImportedModules(ModuleDec dec,
-            MathSymbolTableBuilder symbolTable) throws CompilerException {
+            MathSymbolTableBuilder symbolTable) throws Exception {
         int initErrorCount = err.getErrorCount();
         /*
          * A set of visible theories must be accessible to the module scope
@@ -1117,7 +1077,7 @@ public class Controller {
     }
 
     private void compilePosModule(Import pid, ModuleDec targetFile,
-            MathSymbolTableBuilder symbolTable) {
+            MathSymbolTableBuilder symbolTable) throws Exception {
         try {
             ModuleID mid = pid.getModuleID();
             ModuleKind kind = mid.getModuleKind();
