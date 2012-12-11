@@ -169,6 +169,17 @@ public class VerificationStatement implements Cloneable {
         return assertion;
     }
 
+    /**
+     * <p>I need a convenient way of printing out a full piece of assertive
+     * code, but I'm hesitant to change toString() since, knowing this code
+     * base, something depends on it.</p>
+     */
+    public String allInfo() {
+        String result = toString();
+        result += assertion;
+        return result;
+    }
+
     public String toString() {
         String str = new String();
         switch (type) {

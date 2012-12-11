@@ -769,4 +769,14 @@ public class AssertiveCode implements Cloneable {
         return provePart;
     }
 
+    @Override
+    public String toString() {
+        String result = "";
+
+        for (VerificationStatement s : assertive_code) {
+            result += s.allInfo() + "\n";
+        }
+
+        return result;
+    }
 }
